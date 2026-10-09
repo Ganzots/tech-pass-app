@@ -1604,12 +1604,10 @@ async function loadFromStorage() {
     }
 
     function handleLogout() {
-      if (confirm('Системээс гарах уу?')) {
-        stopSessionTimer();
-        currentUser = null;
-        saveDB();
-        checkAuth();
-      }
+      stopSessionTimer();
+      currentUser = null;
+      saveDB();
+      checkAuth();
     }
 
     function applyUserPermissions() {
