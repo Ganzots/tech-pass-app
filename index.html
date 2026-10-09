@@ -2185,27 +2185,55 @@ async function loadFromStorage() {
           leadApproverHtml = `<div class="font-semibold text-slate-800">${log.approvedBy}</div><div class="text-[10px] text-slate-400 font-mono">${log.approvedDate || ''}</div>`;
         }
 
-        // 3. Хяналтын дүгнэлт багана (Аудиторын дүгнэлт оруулах үйлдэл)
+// 3. Хяналтын дүгнэлт багана ("Танилцав", "Шаардлага хангаагүй" + Огноо, цаг)
         let auditHtml = '';
-        if (log.auditComment) {
+        const hasDecision = log.auditStatus || log.auditComment;
+
+        if (hasDecision) {
+          const isPassed = log.auditStatus === 'accepted';
+          const badgeClass = isPassed 
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+            : 'bg-rose-50 text-rose-800 border-rose-200';
+          const badgeIcon = isPassed ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600';
+          const statusTitle = isPassed ? 'Танилцав' : 'Шаардлага хангаагүй';
+
           auditHtml = `
-            <div class="bg-indigo-50/70 p-2 rounded-lg border border-indigo-100 text-[11px] text-indigo-900">
-              <div class="font-medium">${log.auditComment}</div>
-              <div class="text-[10px] text-indigo-500 font-semibold mt-1">— ${log.auditedBy || 'Хяналт'} (${log.auditedDate || ''})</div>
+            <div class="p-2 rounded-xl border ${badgeClass} text-[11px] space-y-1">
+              <div class="font-bold flex items-center gap-1.5">
+                <i class="fa-solid ${badgeIcon}"></i>
+                <span>${statusTitle}</span>
+              </div>
+              ${log.auditComment ? `<div class="text-slate-700 pl-4 text-[11px] leading-relaxed italic">"${log.auditComment}"</div>` : ''}
+              <div class="text-[10px] text-slate-500 pl-4 font-mono">
+                👤 ${log.auditedBy || 'Хяналт'} | 🕒 ${log.auditedDate || ''}
+              </div>
             </div>
           `;
+
+          // Хяналтын ажилтан эсвэл админ шаардлагатай бол шийдвэрээ солих боломж
           if (isAuditor || isAdmin) {
-            auditHtml += `<button onclick="openAuditModal(${log.id})" class="text-[10px] text-indigo-600 hover:underline mt-1 block cursor-pointer">Дүгнэлт засах</button>`;
+            auditHtml += `
+              <div class="flex items-center gap-2 mt-1">
+                <button onclick="setAuditDecision(${log.id}, 'accepted')" class="text-[10px] text-emerald-600 hover:underline">✔ Танилцав</button>
+                <button onclick="setAuditDecision(${log.id}, 'rejected')" class="text-[10px] text-rose-600 hover:underline">✖ Шаардлага хангаагүй</button>
+              </div>
+            `;
           }
         } else {
+          // Дүгнэлт гараагүй үед
           if (isAuditor || isAdmin) {
             auditHtml = `
-              <button onclick="openAuditModal(${log.id})" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer">
-                <i class="fa-solid fa-pen-to-square"></i> Дүгнэлт бичих
-              </button>
+              <div class="flex items-center gap-1.5 whitespace-nowrap">
+                <button type="button" onclick="setAuditDecision(${log.id}, 'accepted')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer shadow-sm" title="Үзлэг үйлчилгээтэй танилцсан гэж тэмдэглэх">
+                  <i class="fa-solid fa-check"></i> Танилцав
+                </button>
+                <button type="button" onclick="setAuditDecision(${log.id}, 'rejected')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer shadow-sm" title="Шаардлага хангаагүй гэж дүгнэх, шалтгаан бичих">
+                  <i class="fa-solid fa-xmark"></i> Шаардлага хангаагүй
+                </button>
+              </div>
             `;
           } else {
-            auditHtml = `<span class="text-slate-400 text-[11px]">-</span>`;
+            auditHtml = `<span class="inline-flex items-center gap-1 text-slate-400 text-[11px]"><i class="fa-regular fa-clock"></i> Хянагдаагүй</span>`;
           }
         }
 
@@ -2756,7 +2784,39 @@ async function loadFromStorage() {
       closeAuditModal();
       alert('Хяналтын дүгнэлт амжилттай хадгалагдлаа!');
     };
+// Хяналтын ажилтан шууд "Танилцав" эсвэл "Шаардлага хангаагүй" төлөв өгөх функц
+    window.setAuditDecision = function(logId, status) {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
 
+      let comment = '';
+      if (status === 'rejected') {
+        const inputReason = prompt('Шаардлага хангаагүй шалтгаан / тайлбараа оруулна уу:', log.auditComment || '');
+        if (inputReason === null) return; // Цуцалбал зогсооно
+        comment = inputReason.trim() || 'Шаардлага хангаагүй гэж үзэв';
+      } else {
+        const optionalNote = prompt('Нэмэлт тэмдэглэл оруулах уу? (Заавал бичих шаардлагагүй, хоосон үлдээж болно):', log.auditComment || '');
+        if (optionalNote === null) return;
+        comment = optionalNote.trim();
+      }
+
+      // Яг одоогийн огноо болон цаг, минутыг авах (Жишээ: 2026-10-09 13:45)
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      log.auditStatus = status; // 'accepted' эсвэл 'rejected'
+      log.auditComment = comment;
+      log.auditedBy = currentUser ? currentUser.name : 'Хяналтын ажилтан';
+      log.auditedDate = formattedTimestamp;
+
+      saveDB();
+      renderCurrentAsset();
+      generateReport();
+      alert(`Хяналтын үр дүн ("${status === 'accepted' ? 'Танилцав' : 'Шаардлага хангаагүй'}") амжилттай бүртгэгдлээ!`);
+    };
     // 4. Үзлэг засах (Edit)
     window.editLog = function(logId) {
       const a = assets.find(x => x.journalNo === currentAssetNo);
