@@ -293,7 +293,7 @@
             <div class="flex flex-wrap items-center gap-2">
               <span id="dispCategoryBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">-</span>
               <span id="dispDeviceCatBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">-</span>
-              <span id="dispStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">-</span>
+              <span id="dispStatusBadge" class="inline-flex items-center">-</span>
             </div>
             <div>
               <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
@@ -2253,15 +2253,15 @@ async function loadFromStorage() {
 
       switch (status) {
         case "Хэвийн ажиллагаатай":
-          return `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300">● Хэвийн ажиллагаатай</span>`;
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 shadow-xs backdrop-blur-sm"><i class="fa-solid fa-circle-check text-[11px] text-emerald-400"></i> Хэвийн ажиллагаатай</span>`;
         case "Гэмтсэн":
-          return `<span class="bg-rose-100 text-rose-800 border border-rose-300">● Гэмтсэн ${dateInfo}</span>`;
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-400/40 shadow-xs backdrop-blur-sm"><i class="fa-solid fa-triangle-exclamation text-[11px] text-rose-400"></i> Гэмтсэн ${dateInfo}</span>`;
         case "Засварт байгаа":
-          return `<span class="bg-amber-100 text-amber-800 border border-amber-300">● Засварт байгаа ${dateInfo}</span>`;
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-xs backdrop-blur-sm"><i class="fa-solid fa-wrench text-[11px] text-amber-400"></i> Засварт байгаа ${dateInfo}</span>`;
         case "Актлагдсан":
-          return `<span class="bg-slate-200 text-slate-800 border border-slate-400">● Актлагдсан ${dateInfo}</span>`;
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-600/30 text-slate-300 border border-slate-500/40 shadow-xs backdrop-blur-sm"><i class="fa-solid fa-ban text-[11px] text-slate-400"></i> Актлагдсан ${dateInfo}</span>`;
         default:
-          return `<span class="bg-slate-100 text-slate-800">${status}</span>`;
+          return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-700/40 text-slate-200 border border-slate-600/50">${status}</span>`;
       }
     }
 
