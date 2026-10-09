@@ -115,16 +115,18 @@
         </div>
       </div>
 
-      <!-- Баруун: Үйлдлийн товчнууд -->
-      <div class="flex items-center gap-2 relative">
-        <button onclick="openUserGuideModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/30 px-3 py-1.5 rounded-xl font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
-          <i class="fa-solid fa-book-open"></i> <span class="hidden sm:inline">Заавар</span>
+      <!-- Баруун: Үйлдлийн товчнууд (Авсаархан, зөвхөн Icon хэлбэртэй) -->
+      <div class="flex items-center gap-1.5 relative">
+        
+        <!-- ЗААВАР ТОВЧ (Зөвхөн Icon) -->
+        <button onclick="openUserGuideModal()" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-sky-400 border border-sky-500/30 rounded-xl transition-all cursor-pointer" title="Системийн заавар харах">
+          <i class="fa-solid fa-book-open text-xs"></i>
         </button>
 
         <!-- МЭДЭГДЭЛ ХОНХ -->
         <div class="relative">
-          <button onclick="toggleNotificationPanel()" class="relative p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs transition-colors border border-slate-700 cursor-pointer">
-            <i class="fa-solid fa-bell text-sm"></i>
+          <button onclick="toggleNotificationPanel()" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all border border-slate-700 cursor-pointer" title="Мэдэгдлүүд">
+            <i class="fa-solid fa-bell text-xs"></i>
             <span id="notifBadge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 bg-red-600 text-white text-[10px] font-bold rounded-full animate-pulse">0</span>
           </button>
 
@@ -137,22 +139,24 @@
           </div>
         </div>
 
-       <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-xl font-semibold transition-colors cursor-pointer">
-          <i class="fa-solid fa-users-gear mr-1"></i> Хэрэглэгчид
+        <!-- ХЭРЭГЛЭГЧИД ТОВЧ (Зөвхөн Icon) -->
+        <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl transition-all cursor-pointer" title="Хэрэглэгчийн эрх удирдах">
+          <i class="fa-solid fa-users-gear text-xs"></i>
         </button>
 
-        <!-- ИДЭВХГҮЙ ҮЕД ГАРАХ ТООЛУУР БА СУНГАХ ТОВЧ -->
-        <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1 rounded-xl border border-slate-700 text-xs">
-          <i class="fa-solid fa-hourglass-half text-amber-400 text-xs animate-pulse"></i>
-          <span class="text-slate-400 text-[11px] hidden sm:inline">Идэвхгүй бол:</span>
-          <span id="sessionTimerText" class="font-mono font-bold text-amber-300 tracking-wider">10:00</span>
-          <button type="button" onclick="resetSessionTimer()" class="ml-1 px-2 py-0.5 bg-slate-700 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg text-[11px] font-semibold border border-slate-600 hover:border-blue-500 transition-colors cursor-pointer" title="Хугацааг 10 минут болгож сунгах">
-            <i class="fa-solid fa-rotate-right text-[10px] mr-1"></i>Сунгах
+        <!-- ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР (Текстгүй, авсаархан) -->
+        <div class="flex items-center gap-1.5 bg-slate-800/90 px-2 py-1 rounded-xl border border-slate-700" title="Идэвхгүй үед гарах хугацаа">
+          <i class="fa-solid fa-hourglass-half text-amber-400 text-[11px] animate-pulse"></i>
+          <span id="sessionTimerText" class="font-mono font-bold text-amber-300 text-xs">10:00</span>
+          <button type="button" onclick="resetSessionTimer()" class="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-blue-600 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer" title="Цагийг сунгах / 10 минут болгох">
+            <i class="fa-solid fa-rotate-right text-[10px]"></i>
           </button>
         </div>
 
-        <button onclick="handleLogout()" class="text-xs bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl font-semibold transition-colors cursor-pointer">
-          <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Гарах
+        <!-- ГАРАХ ТОВЧ -->
+        <button onclick="handleLogout()" class="h-8 px-2.5 bg-red-600/80 hover:bg-red-600 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer" title="Системээс гарах">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+          <span class="hidden md:inline text-[11px]">Гарах</span>
         </button>
       </div>
     </div>
