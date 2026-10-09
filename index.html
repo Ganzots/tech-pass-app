@@ -402,49 +402,61 @@
         </div>
       </section>
 
-      <!-- II & III ТЕХНИКИЙН ҮЗҮҮЛЭЛТ БА ИЖ БҮРДЭЛ -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <section class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-microchip text-blue-600"></i> II. Техникийн үндсэн үзүүлэлтүүд
-            </h2>
-            <span class="text-[11px] text-slate-400 font-medium">Дэлгэрэнгүй үзүүлэлт</span>
+      <!-- II & III ТЕХНИКИЙН ҮЗҮҮЛЭЛТ БА ИЖ БҮРДЭЛ (MODERN DUAL CARDS) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- II. ТЕХНИКИЙН ҮНДСЭН ҮЗҮҮЛЭЛТҮҮД -->
+        <section class="lg:col-span-8 bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col transition-all">
+          <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50/70 to-white">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs border border-blue-100">
+                <i class="fa-solid fa-microchip"></i>
+              </span>
+              <h2 class="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                II. Техникийн үндсэн үзүүлэлтүүд
+              </h2>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Параметрүүд</span>
           </div>
           <div class="overflow-x-auto flex-1">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 text-slate-400 uppercase font-semibold">
+              <thead class="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-100">
                 <tr>
-                  <th class="px-3 py-2.5 w-10 text-center">д/д</th>
-                  <th class="px-3 py-2.5">Үзүүлэлтийн нэр</th>
-                  <th class="px-3 py-2.5">Тоон утга / Үзүүлэлт</th>
-                  <th class="px-3 py-2.5 text-center w-16">Тоо</th>
-                  <th class="px-3 py-2.5 w-16">Нэгж</th>
+                  <th class="px-3.5 py-2.5 w-10 text-center">№</th>
+                  <th class="px-3.5 py-2.5">Үзүүлэлтийн нэр</th>
+                  <th class="px-3.5 py-2.5">Тоон утга / Үзүүлэлт</th>
+                  <th class="px-3.5 py-2.5 text-center w-16">Тоо</th>
+                  <th class="px-3.5 py-2.5 w-16">Нэгж</th>
                 </tr>
               </thead>
-              <tbody id="specsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              <tbody id="specsTableBody" class="divide-y divide-slate-100/90 text-slate-700 font-medium"></tbody>
             </table>
           </div>
         </section>
 
-        <section class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-boxes-stacked text-blue-600"></i> III. Иж бүрдэл
-            </h2>
-            <span class="text-[11px] text-slate-400 font-medium">Дагалдах</span>
+        <!-- III. ИЖ БҮРДЭЛ -->
+        <section class="lg:col-span-4 bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col transition-all">
+          <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50/70 to-white">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs border border-indigo-100">
+                <i class="fa-solid fa-boxes-stacked"></i>
+              </span>
+              <h2 class="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                III. Иж бүрдэл
+              </h2>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Дагалдах</span>
           </div>
           <div class="overflow-x-auto flex-1">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 text-slate-400 uppercase font-semibold">
+              <thead class="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-100">
                 <tr>
-                  <th class="px-2.5 py-2.5 w-8 text-center">д/д</th>
-                  <th class="px-2.5 py-2.5">Иж бүрдэл</th>
+                  <th class="px-3 py-2.5 w-8 text-center">№</th>
+                  <th class="px-3 py-2.5">Иж бүрдэл</th>
                   <th class="px-2 py-2.5 text-center w-12">Тоо</th>
-                  <th class="px-2 py-2.5 w-10">Нэгж</th>
+                  <th class="px-3 py-2.5 w-12">Нэгж</th>
                 </tr>
               </thead>
-              <tbody id="accessoriesTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              <tbody id="accessoriesTableBody" class="divide-y divide-slate-100/90 text-slate-700 font-medium"></tbody>
             </table>
           </div>
         </section>
