@@ -214,6 +214,24 @@
             </div>
           </div>
 
+          <!-- ТҮРГЭН ХАЙЛТЫН ТАЛБАР -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600 whitespace-nowrap w-24">Шуурхай хайлт:</label>
+            <div class="relative w-full md:w-80">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="assetSearchInput" oninput="onAssetSearchInput(this.value)" placeholder="Марк, код, журнал, эзэмшигчээр..." class="w-full pl-8 pr-7 py-2 bg-slate-50 border border-slate-300 text-slate-900 text-xs font-medium rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+              <button type="button" id="btnClearSearch" onclick="clearAssetSearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                <i class="fa-solid fa-circle-xmark text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600 whitespace-nowrap w-24">Төхөөрөмж:</label>
+            <select id="assetSelector" onchange="onSelectAsset(this.value)" class="w-full md:w-80 bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold rounded-xl p-2 focus:ring-blue-500"></select>
+          </div>
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-600 whitespace-nowrap w-24">Төхөөрөмж:</label>
             <select id="assetSelector" onchange="onSelectAsset(this.value)" class="w-full md:w-80 bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold rounded-xl p-2 focus:ring-blue-500"></select>
@@ -1422,6 +1440,7 @@
     let currentAssetNo = "201402001";
     let selectedSectionFilter = "ALL";
     let selectedDeviceCatFilter = "ALL";
+    let assetSearchQuery = "";
 
 async function loadFromStorage() {
       // 1. Эхлээд local cache-ээс түргэн ачаална
@@ -2064,8 +2083,39 @@ async function loadFromStorage() {
         list = list.filter(a => (a.deviceCategory || "Сервер болон компьютер") === selectedDeviceCatFilter);
       }
 
+      // ТҮРГЭН ХАЙЛТЫН ТҮЛХҮҮР ҮГЭЭР ШҮҮХ
+      if (assetSearchQuery) {
+        const q = assetSearchQuery.toLowerCase();
+        list = list.filter(a => 
+          (a.journalNo && a.journalNo.toLowerCase().includes(q)) ||
+          (a.assetCode && a.assetCode.toLowerCase().includes(q)) ||
+          (a.model && a.model.toLowerCase().includes(q)) ||
+          (a.location && a.location.toLowerCase().includes(q)) ||
+          (a.owner && a.owner.toLowerCase().includes(q))
+        );
+      }
+
       return list;
     }
+    window.onAssetSearchInput = function(val) {
+      assetSearchQuery = val.trim();
+      const btnClear = document.getElementById('btnClearSearch');
+      if (btnClear) btnClear.classList.toggle('hidden', !assetSearchQuery);
+      
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    window.clearAssetSearch = function() {
+      const input = document.getElementById('assetSearchInput');
+      if (input) input.value = '';
+      assetSearchQuery = '';
+      const btnClear = document.getElementById('btnClearSearch');
+      if (btnClear) btnClear.classList.add('hidden');
+      
+      initAssetSelector();
+      renderCurrentAsset();
+    };
 
     function initAssetSelector() {
       const sel = document.getElementById('assetSelector');
@@ -2387,7 +2437,8 @@ async function loadFromStorage() {
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      let logs = asset.logs || [];
+      // Сүүлийн огноотой үзлэгийг хамгийн эхэнд байрлуулах
+      let logs = [...(asset.logs || [])].sort((x, y) => new Date(y.date) - new Date(x.date));
 
       const role = currentUser ? currentUser.role : 'viewer';
       const isAdmin = role === 'admin';
