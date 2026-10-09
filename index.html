@@ -2462,41 +2462,110 @@ async function loadFromStorage() {
       });
     }
 
-    // 2. Мэдэгдэл харуулах функц
+    // 2. Мэдэгдэл харуулах шинэчилсэн функц (Үүргээр ялгаж, дарахад шилжинэ)
     function renderNotifications() {
       const badge = document.getElementById('notifBadge');
       const countText = document.getElementById('notifCountText');
       const list = document.getElementById('notifListContainer');
-      if (!badge || !list) return;
+      if (!badge || !list || !currentUser) return;
 
-      let pendingCount = 0;
       list.innerHTML = '';
+      const notifs = [];
+
+      const role = currentUser.role;
+      const isAdmin = role === 'admin';
+      const isLead = role === 'lead';
+      const isAuditor = role === 'auditor';
 
       assets.forEach(a => {
+        // Энгийн инженер зөвхөн өөрийн системээ харна
+        if (!isAdmin && !isLead && !isAuditor && a.category !== currentUser.system) return;
+
+        // 1. АХЛАХ & АДМИН: Батлах хүлээгдэж буй үзлэгүүд
         (a.logs || []).forEach(l => {
-          if (l.status === 'pending') {
-            pendingCount++;
-            const item = document.createElement('div');
-            item.className = 'p-3 hover:bg-slate-50 text-xs cursor-pointer';
-            item.innerHTML = `
-              <div class="font-bold text-slate-800">${a.model} (${a.journalNo})</div>
-              <div class="text-slate-500">${l.date} - ${l.action}</div>
-            `;
-            list.appendChild(item);
+          if (l.status === 'pending' && (isLead || isAdmin)) {
+            notifs.push({
+              journalNo: a.journalNo,
+              title: `${a.model} (№${a.journalNo})`,
+              desc: `✍️ Батлах хүлээгдэж байна (${l.date})`,
+              color: 'text-amber-600',
+              bg: 'hover:bg-amber-50/60'
+            });
+          }
+
+          // 2. АУДИТОР & АДМИН: Хяналт хийх шаардлагатай үзлэгүүд
+          if (l.status === 'approved' && !l.auditStatus && (isAuditor || isAdmin)) {
+            notifs.push({
+              journalNo: a.journalNo,
+              title: `${a.model} (№${a.journalNo})`,
+              desc: `🔍 Хяналтын дүгнэлт хүлээгдэж байна (${l.date})`,
+              color: 'text-blue-600',
+              bg: 'hover:bg-blue-50/60'
+            });
           }
         });
+
+        // 3. ҮЗЛЭГИЙН ХУГАЦАА ХЭТЭРСЭН СЭРЭМЖЛҮҮЛЭГ
+        const nextData = calculateNextInspectionData(a);
+        if (nextData.diffDays <= 0) {
+          notifs.push({
+            journalNo: a.journalNo,
+            title: `${a.model} (№${a.journalNo})`,
+            desc: `⚠️ Үзлэг хийх хугацаа ${Math.abs(nextData.diffDays)} хоног хэтэрсэн!`,
+            color: 'text-rose-600',
+            bg: 'hover:bg-rose-50/60'
+          });
+        }
       });
 
-      if (pendingCount > 0) {
-        badge.innerText = pendingCount;
+      if (notifs.length > 0) {
+        badge.innerText = notifs.length;
         badge.classList.remove('hidden');
-        countText.innerText = `${pendingCount} батлах дутуу`;
+        countText.innerText = `${notifs.length} шинэ мэдэгдэл`;
+
+        notifs.forEach(n => {
+          const item = document.createElement('div');
+          item.className = `p-3 ${n.bg} transition-colors cursor-pointer border-b border-slate-100 last:border-b-0`;
+          item.onclick = () => {
+            navigateToAssetFromNotif(n.journalNo);
+          };
+          item.innerHTML = `
+            <div class="font-bold text-slate-800 text-xs flex justify-between items-center">
+              <span>${n.title}</span>
+              <span class="text-[10px] text-blue-600 font-semibold">Шилжих →</span>
+            </div>
+            <div class="text-[11px] ${n.color} mt-0.5 font-medium">${n.desc}</div>
+          `;
+          list.appendChild(item);
+        });
       } else {
         badge.classList.add('hidden');
         countText.innerText = '0 шинэ';
-        list.innerHTML = '<div class="p-4 text-center text-slate-400">Шинэ мэдэгдэл байхгүй</div>';
+        list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">Шинэ мэдэгдэл байхгүй байна.</div>';
       }
     }
+
+    // Мэдэгдэл дээр дармагц тухайн төхөөрөмж рүү үсрэх функц
+    window.navigateToAssetFromNotif = function(journalNo) {
+      const a = assets.find(x => x.journalNo === journalNo);
+      if (!a) return;
+
+      selectedSectionFilter = "ALL";
+      const secSel = document.getElementById('sectionFilterSelector');
+      if (secSel && !secSel.disabled) secSel.value = "ALL";
+
+      selectedDeviceCatFilter = "ALL";
+      const catSel = document.getElementById('deviceCategorySelector');
+      if (catSel) catSel.value = "ALL";
+
+      currentAssetNo = journalNo;
+      initAssetSelector();
+      renderCurrentAsset();
+      switchTab('passport');
+
+      const panel = document.getElementById('notifDropdown');
+      if (panel) panel.classList.add('hidden');
+    };
 
     // 3. Мэдэгдлийн цонхыг нээх/хаах функц
     window.toggleNotificationPanel = function() {
@@ -3241,6 +3310,14 @@ async function loadFromStorage() {
       loadFromStorage();
       startLiveClock();
       checkAuth();
+    });
+    // Мэдэгдлийн цонхны гадуур дарахад хаах
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('notifDropdown');
+      const notifBtn = e.target.closest('button[onclick*="toggleNotificationPanel"]');
+      if (dropdown && !dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !notifBtn) {
+        dropdown.classList.add('hidden');
+      }
     });
   </script>
 </body>
