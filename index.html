@@ -1083,7 +1083,97 @@
       </div>
     </div>
   </div>
+<!-- МОДАЛ: ТӨХӨӨРӨМЖИЙН МЭДЭЭЛЭЛ ЗАСВАРЛАХ -->
+  <div id="adminEditAssetModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60]">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-blue-600"></i> Төхөөрөмжийн мэдээлэл засах
+          </h3>
+          <p class="text-xs text-slate-500">Журнал №: <span id="editModalJournalNoBadge" class="font-bold text-blue-700 font-mono"></span></p>
+        </div>
+        <button onclick="closeAdminEditAssetModal()" class="text-slate-400 hover:text-slate-600 p-2 text-base cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
+      <form id="adminEditAssetForm" onsubmit="handleAdminEditAssetSubmit(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="editModalJournalNo">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Марк, тип *</label>
+            <input type="text" id="editModalModel" required class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-semibold">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Хөрөнгийн код</label>
+            <input type="text" id="editModalAssetCode" class="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Хамаарах систем (Хэсэг) *</label>
+            <select id="editModalCategory" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold bg-white">
+              <option value="Хяналт мэдээллийн систем">Хяналт мэдээллийн систем</option>
+              <option value="Тоолуурын нэгдсэн систем">Тоолуурын нэгдсэн систем</option>
+              <option value="Холбооны систем">Холбооны систем</option>
+              <option value="Мэдээллийн систем">Мэдээллийн систем</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Төхөөрөмжийн ангилал *</label>
+            <select id="editModalDeviceCategory" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold bg-white"></select>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Байршил *</label>
+            <input type="text" id="editModalLocation" required class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Эзэмшигч *</label>
+            <input type="text" id="editModalOwner" required class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Алба</label>
+            <input type="text" id="editModalDept" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Албан тушаал</label>
+            <input type="text" id="editModalRole" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Эдлэгдэх хугацаа</label>
+            <input type="text" id="editModalLifespan" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ажиллагааны төлөв *</label>
+            <select id="editModalStatus" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold bg-white">
+              <option value="Хэвийн ажиллагаатай">🟢 Хэвийн ажиллагаатай</option>
+              <option value="Гэмтсэн">🔴 Гэмтсэн</option>
+              <option value="Засварт байгаа">🟡 Засварт байгаа</option>
+              <option value="Актлагдсан">⚪ Актлагдсан</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeAdminEditAssetModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold cursor-pointer">
+            Болих
+          </button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold cursor-pointer shadow-sm">
+            Хадгалах
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
   <!-- МОДАЛ: АДМИН ХЭРЭГЛЭГЧИД -->
   <div id="userMgmtModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -3027,22 +3117,62 @@ async function loadFromStorage() {
       });
     }
 
+    // Төхөөрөмж засах цонх нээх
     window.adminQuickEditAsset = function(journalNo) {
       const a = assets.find(x => x.journalNo === journalNo);
       if (!a) return;
 
-      const newModel = prompt("Марк, тип засах:", a.model);
-      if (newModel === null) return;
+      // Ангиллын dropdown-ийг дүүргэх
+      const catSel = document.getElementById('editModalDeviceCategory');
+      if (catSel) {
+        catSel.innerHTML = '';
+        deviceCategories.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          if (c === (a.deviceCategory || "Сервер болон компьютер")) opt.selected = true;
+          catSel.appendChild(opt);
+        });
+      }
 
-      const newLocation = prompt("Байршил засах:", a.location);
-      if (newLocation === null) return;
+      // Талбаруудад хуучин өгөгдлийг оноох
+      document.getElementById('editModalJournalNo').value = a.journalNo;
+      document.getElementById('editModalJournalNoBadge').innerText = a.journalNo;
+      document.getElementById('editModalModel').value = a.model || '';
+      document.getElementById('editModalAssetCode').value = a.assetCode || '';
+      document.getElementById('editModalCategory').value = a.category || 'Тоолуурын нэгдсэн систем';
+      document.getElementById('editModalLocation').value = a.location || '';
+      document.getElementById('editModalOwner').value = a.owner || '';
+      document.getElementById('editModalDept').value = a.dept || '';
+      document.getElementById('editModalRole').value = a.role || '';
+      document.getElementById('editModalLifespan').value = a.lifespan || '8 жил';
+      document.getElementById('editModalStatus').value = a.status || 'Хэвийн ажиллагаатай';
 
-      const newStatus = prompt("Төлөв (Хэвийн ажиллагаатай / Гэмтсэн / Засварт байгаа / Актлагдсан):", a.status || "Хэвийн ажиллагаатай");
-      if (newStatus === null) return;
+      document.getElementById('adminEditAssetModal').classList.remove('hidden');
+    };
 
-      a.model = newModel.trim() || a.model;
-      a.location = newLocation.trim() || a.location;
-      a.status = newStatus.trim() || a.status;
+    // Төхөөрөмж засах цонх хаах
+    window.closeAdminEditAssetModal = function() {
+      document.getElementById('adminEditAssetModal').classList.add('hidden');
+    };
+
+    // Зассан өгөгдлийг хадгалах үйлдэл
+    window.handleAdminEditAssetSubmit = function(e) {
+      e.preventDefault();
+      const journalNo = document.getElementById('editModalJournalNo').value;
+      const a = assets.find(x => x.journalNo === journalNo);
+      if (!a) return;
+
+      a.model = document.getElementById('editModalModel').value.trim();
+      a.assetCode = document.getElementById('editModalAssetCode').value.trim();
+      a.category = document.getElementById('editModalCategory').value;
+      a.deviceCategory = document.getElementById('editModalDeviceCategory').value;
+      a.location = document.getElementById('editModalLocation').value.trim();
+      a.owner = document.getElementById('editModalOwner').value.trim();
+      a.dept = document.getElementById('editModalDept').value.trim();
+      a.role = document.getElementById('editModalRole').value.trim();
+      a.lifespan = document.getElementById('editModalLifespan').value.trim();
+      a.status = document.getElementById('editModalStatus').value;
 
       saveDB();
       renderAdminAssetsTable();
@@ -3050,7 +3180,8 @@ async function loadFromStorage() {
       renderCurrentAsset();
       renderDashboardMetrics();
       generateReport();
-      alert(`№${journalNo} төхөөрөмжийн мэдээлэл шинэчлэгдлээ.`);
+      closeAdminEditAssetModal();
+      alert(`№${journalNo} төхөөрөмжийн мэдээлэл амжилттай хадгалагдлаа!`);
     };
 
     window.adminDeleteAsset = function(journalNo) {
