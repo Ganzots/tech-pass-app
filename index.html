@@ -149,6 +149,10 @@
         <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl transition-all cursor-pointer" title="Хэрэглэгчийн эрх удирдах">
           <i class="fa-solid fa-users-gear text-xs"></i>
         </button>
+        <!-- СИСТЕМИЙН ҮЙЛДЛИЙН ТҮҮХ ТОВЧ (Зөвхөн админд) -->
+        <button id="btnActivityLog" onclick="openActivityLogModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 rounded-xl transition-all cursor-pointer" title="Системийн үйлдлийн түүх (Audit Log)">
+          <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+        </button>
 
         <!-- ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР (Текстгүй, авсаархан) -->
         <div class="flex items-center gap-1.5 bg-slate-800/90 px-2 py-1 rounded-xl border border-slate-700" title="Идэвхгүй үед гарах хугацаа">
@@ -1239,6 +1243,43 @@
       </div>
     </div>
   </div>
+  <!-- МОДАЛ: СИСТЕМИЙН ҮЙЛДЛИЙН ТҮҮХ (AUDIT LOG) -->
+  <div id="activityLogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="p-2 bg-teal-50 text-teal-600 rounded-xl"><i class="fa-solid fa-shield-halved text-lg"></i></span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Системийн үйлдлийн түүх (Audit Log)</h3>
+            <p class="text-xs text-slate-400">Бүртгэл, засвар, устгал, баталгаажуулалтын түүх</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeActivityLogModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto border border-slate-200 rounded-2xl max-h-96 overflow-y-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase text-[10px] sticky top-0">
+            <tr>
+              <th class="p-2.5 w-10 text-center">№</th>
+              <th class="p-2.5">Огноо, цаг</th>
+              <th class="p-2.5">Ажилтан</th>
+              <th class="p-2.5">Үйлдэл</th>
+              <th class="p-2.5">Дэлгэрэнгүй</th>
+            </tr>
+          </thead>
+          <tbody id="activityLogTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+        <span class="text-xs text-slate-400" id="activityLogCount">Нийт: 0 бичиглэл</span>
+        <button type="button" onclick="closeActivityLogModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer">Хаах</button>
+      </div>
+    </div>
+  </div>
   <!-- МОДАЛ: АДМИН ХЭРЭГЛЭГЧИД -->
   <div id="userMgmtModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -1436,8 +1477,25 @@
     let currentAssetNo = "201402001";
     let selectedSectionFilter = "ALL";
     let selectedDeviceCatFilter = "ALL";
+    let systemAuditLogs = [];
     let assetSearchQuery = "";
+function logUserActivity(actionType, details) {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const timeStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
+      const entry = {
+        id: Date.now(),
+        timestamp: timeStr,
+        user: currentUser ? `${currentUser.name} (@${currentUser.username})` : 'Систем',
+        role: currentUser ? (ROLE_TITLES[currentUser.role] || currentUser.role) : '-',
+        action: actionType,
+        details: details
+      };
+
+      systemAuditLogs.unshift(entry);
+      if (systemAuditLogs.length > 300) systemAuditLogs.pop(); // Сүүлийн 300 үйлдлийг хадгална
+    }
 async function loadFromStorage() {
       // 1. Эхлээд local cache-ээс түргэн ачаална
       try {
@@ -1449,6 +1507,8 @@ async function loadFromStorage() {
         if (c) currentUser = JSON.parse(c);
         const cats = localStorage.getItem('sys_device_categories_v30');
         if (cats) deviceCategories = JSON.parse(cats);
+        const logs = localStorage.getItem('sys_audit_logs_v30');
+        if (logs) systemAuditLogs = JSON.parse(logs);
       } catch (e) {
         console.warn('Storage read error.');
       }
@@ -1513,6 +1573,7 @@ async function loadFromStorage() {
         localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
         localStorage.setItem('sys_users_v30', JSON.stringify(users));
         localStorage.setItem('sys_device_categories_v30', JSON.stringify(deviceCategories));
+        localStorage.setItem('sys_audit_logs_v30', JSON.stringify(systemAuditLogs));
         if (currentUser) {
           localStorage.setItem('current_logged_user_v30', JSON.stringify(currentUser));
         } else {
@@ -1729,6 +1790,8 @@ async function loadFromStorage() {
       }
 
       document.getElementById('btnUserMgmt').classList.toggle('hidden', !isAdmin);
+      const btnActivity = document.getElementById('btnActivityLog');
+      if (btnActivity) btnActivity.classList.toggle('hidden', !isAdmin);
       document.getElementById('btnManageDevCategories').classList.toggle('hidden', !isAdmin);
       document.getElementById('excelActions').classList.toggle('hidden', !(isAdmin || isTech));
       document.getElementById('btnNewAsset').classList.toggle('hidden', !(isAdmin || isTech));
@@ -2406,6 +2469,7 @@ async function loadFromStorage() {
       // ТӨХӨӨРӨМЖИЙН ҮНДСЭН ТӨЛӨВИЙГ ХАМГИЙН СҮҮЛИЙН ҮЗЛЭГИЙН ТӨЛӨВӨӨР АВТОМАТААР СОЛИХ
       a.status = statusAfter;
       a.statusDate = inspDate;
+      logUserActivity('Үзлэг бүртгэсэн', `№${a.journalNo} (${a.model}) дээр шинэ үзлэг, үйлчилгээ бүртгэв.`);
 
       saveDB();
       renderCurrentAsset();
@@ -2848,6 +2912,7 @@ async function loadFromStorage() {
 
       assets.unshift(newAsset);
       currentAssetNo = newAsset.journalNo;
+      logUserActivity('Төхөөрөмж нэмсэн', `№${newAsset.journalNo} | ${newAsset.model} (${newAsset.category})`);
 
       saveDB();
       initAssetSelector();
@@ -3178,6 +3243,7 @@ async function loadFromStorage() {
       const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
       log.status = 'approved';
+      logUserActivity('Үзлэг баталсан', `№${a.journalNo} (${a.model}) үзлэгийг баталгаажуулав.`);
       log.approvedBy = currentUser.name;
       log.approvedDate = formattedTimestamp;
 
@@ -3203,6 +3269,7 @@ async function loadFromStorage() {
       if (!log) return;
 
       log.status = 'pending';
+      logUserActivity('Батламж цуцалсан', `№${a.journalNo} (${a.model}) үзлэгийн баталгаажуулалтыг цуцлав.`);
       log.approvedBy = null;
       log.approvedDate = null;
       log.auditStatus = null;
@@ -3505,6 +3572,7 @@ async function loadFromStorage() {
       if (!confirm(`Та "${a.model}" (Журнал: ${journalNo}) төхөөрөмжийг устгахдаа итгэлтэй байна уу?`)) return;
 
       assets = assets.filter(x => x.journalNo !== journalNo);
+      logUserActivity('Төхөөрөмж устгасан', `№${journalNo} (${a.model}) төхөөрөмжийг устгав.`);
 
       if (currentAssetNo === journalNo && assets.length > 0) {
         currentAssetNo = assets[0].journalNo;
@@ -3600,6 +3668,47 @@ async function loadFromStorage() {
         currentAssetNo = jNo;
       }
     }
+    window.openActivityLogModal = function() {
+      const tbody = document.getElementById('activityLogTableBody');
+      const countEl = document.getElementById('activityLogCount');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      if (countEl) countEl.innerText = `Нийт: ${systemAuditLogs.length} бичиглэл`;
+
+      if (systemAuditLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">Одоогоор бүртгэгдсэн үйлдэл алга байна.</td></tr>`;
+      } else {
+        systemAuditLogs.forEach((log, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition-colors';
+
+          let actionColor = 'text-blue-600 bg-blue-50 border-blue-200';
+          if (log.action.includes('Устгасан') || log.action.includes('Шаардлага хангаагүй') || log.action.includes('цуцалсан')) {
+            actionColor = 'text-rose-600 bg-rose-50 border-rose-200';
+          } else if (log.action.includes('Баталсан') || log.action.includes('нэмсэн') || log.action.includes('бүртгэсэн')) {
+            actionColor = 'text-emerald-700 bg-emerald-50 border-emerald-200';
+          }
+
+          tr.innerHTML = `
+            <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-2.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">${log.timestamp}</td>
+            <td class="p-2.5 font-semibold text-slate-800 whitespace-nowrap">${log.user}</td>
+            <td class="p-2.5 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${actionColor}">${log.action}</span>
+            </td>
+            <td class="p-2.5 text-[11px] text-slate-600">${log.details}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById('activityLogModal').classList.remove('hidden');
+    };
+
+    window.closeActivityLogModal = function() {
+      document.getElementById('activityLogModal').classList.add('hidden');
+    };
     // ================= ЭХЛҮҮЛЭХ =================
     window.addEventListener('DOMContentLoaded', () => {
       loadFromStorage();
