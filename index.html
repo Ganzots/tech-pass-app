@@ -2326,7 +2326,7 @@ async function loadFromStorage() {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
 
-        // 1. Батламж багана (Ахлах ажилтны батлах үйлдэл + огноо, цаг)
+        // 1. Батламж багана (Ахлах ажилтны батлах үйлдэл + огноо, цаг + цуцлах боломж)
         let approvalHtml = '';
         if (log.status === 'approved') {
           approvalHtml = `
@@ -2335,6 +2335,7 @@ async function loadFromStorage() {
                 <i class="fa-solid fa-circle-check"></i> Баталсан
               </span>
               <div class="text-[10px] text-slate-400 font-mono mt-0.5">${log.approvedDate || ''}</div>
+              ${(isLead || isAdmin) ? `<button type="button" onclick="unapproveLog(${log.id})" class="text-[10px] text-rose-500 hover:text-rose-700 hover:underline font-semibold block mt-1 cursor-pointer">Цуцлах</button>` : ''}
             </div>
           `;
         } else {
@@ -2972,7 +2973,7 @@ async function loadFromStorage() {
     };
     // ================= БАТАЛГААЖУУЛАЛТ, АУДИТ, ЗАСАХ БА УСТГАХ ЛОГИК =================
 
-    // 1. Ахлах ажилтан үзлэг "Батлах"
+    // 1. Ахлах ажилтан үзлэг "Батлах" (Шууд батална, асуух болон анхааруулах цонх гарахгүй)
     window.approveLog = function(logId) {
       const a = assets.find(x => x.journalNo === currentAssetNo);
       if (!a || !a.logs) return;
@@ -2980,28 +2981,48 @@ async function loadFromStorage() {
       const log = a.logs.find(x => x.id == logId);
       if (!log) return;
 
-      if (confirm('Энэхүү үзлэг, үйлчилгээний тайланг батлах уу?')) {
-        const now = new Date();
-        const pad = n => String(n).padStart(2, '0');
-        const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-        log.status = 'approved';
-        log.approvedBy = currentUser.name;
-        log.approvedDate = formattedTimestamp;
+      log.status = 'approved';
+      log.approvedBy = currentUser.name;
+      log.approvedDate = formattedTimestamp;
 
-        // Баталсан үзлэг нь тухайн төхөөрөмжийн хамгийн сүүлийн үзлэг бол үндсэн төлөвийг шинэчлэх
-        if (a.logs && a.logs.length > 0 && a.logs[0].id == logId) {
-          a.status = log.statusAfter || 'Хэвийн ажиллагаатай';
-          a.statusDate = log.date;
-        }
-
-        saveDB();
-        renderCurrentAsset();
-        renderDashboardMetrics();
-        renderNotifications();
-        generateReport();
-        alert('Үзлэгийг амжилттай баталгаажууллаа!');
+      // Хамгийн сүүлийн үзлэг бол төхөөрөмжийн үндсэн төлөвийг шинэчлэх
+      if (a.logs && a.logs.length > 0 && a.logs[0].id == logId) {
+        a.status = log.statusAfter || 'Хэвийн ажиллагаатай';
+        a.statusDate = log.date;
       }
+
+      saveDB();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      renderNotifications();
+      generateReport();
+    };
+
+    // Баталгаажуулалтыг буцааж цуцлах функц
+    window.unapproveLog = function(logId) {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
+
+      log.status = 'pending';
+      log.approvedBy = null;
+      log.approvedDate = null;
+      log.auditStatus = null;
+      log.auditComment = null;
+      log.auditedBy = null;
+      log.auditedDate = null;
+
+      saveDB();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      renderNotifications();
+      generateReport();
     };
 
     // 2. Хяналтын ажилтан дүгнэлт оруулах модал нээх/хаах
