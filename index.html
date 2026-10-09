@@ -2108,6 +2108,10 @@ async function loadFromStorage() {
         });
       }
 
+      // ТӨХӨӨРӨМЖИЙН ҮНДСЭН ТӨЛӨВИЙГ ХАМГИЙН СҮҮЛИЙН ҮЗЛЭГИЙН ТӨЛӨВӨӨР АВТОМАТААР СОЛИХ
+      a.status = statusAfter;
+      a.statusDate = inspDate;
+
       saveDB();
       renderCurrentAsset();
       renderDashboardMetrics();
@@ -2134,9 +2138,24 @@ async function loadFromStorage() {
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      const logs = asset.logs || [];
+      let logs = asset.logs || [];
+
+      const role = currentUser ? currentUser.role : 'viewer';
+      const isAdmin = role === 'admin';
+      const isLead = role === 'lead';
+      const isAuditor = role === 'auditor';
+      const isTech = role === 'technician';
+
+      // ХЯНАЛТЫН АЖИЛТАНД ЗӨВХӨН БАТАЛСАН ҮЗЛЭГҮҮДИЙГ ХАРУУЛАХ
+      if (isAuditor) {
+        logs = logs.filter(l => l.status === 'approved');
+      }
+
       if (logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center p-4 text-slate-400">Үзлэг, үйлчилгээний түүх байхгүй байна.</td></tr>';
+        const emptyMsg = isAuditor 
+          ? 'Ахлах ажилтнаас баталгаажуулсан үзлэг одоогоор байхгүй байна.' 
+          : 'Үзлэг, үйлчилгээний түүх байхгүй байна.';
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center p-4 text-slate-400 font-medium">${emptyMsg}</td></tr>`;
         return;
       }
 
@@ -2690,6 +2709,12 @@ async function loadFromStorage() {
         log.status = 'approved';
         log.approvedBy = currentUser.name;
         log.approvedDate = new Date().toISOString().split('T')[0];
+
+        // Баталсан үзлэг нь тухайн төхөөрөмжийн хамгийн сүүлийн үзлэг бол үндсэн төлөвийг шинэчлэх
+        if (a.logs && a.logs.length > 0 && a.logs[0].id == logId) {
+          a.status = log.statusAfter || 'Хэвийн ажиллагаатай';
+          a.statusDate = log.date;
+        }
 
         saveDB();
         renderCurrentAsset();
