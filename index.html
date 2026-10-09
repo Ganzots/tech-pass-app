@@ -2136,27 +2136,99 @@ async function loadFromStorage() {
 
       const logs = asset.logs || [];
       if (logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center p-4 text-slate-400">Үзлэг хийгдээгүй байна</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center p-4 text-slate-400">Үзлэг, үйлчилгээний түүх байхгүй байна.</td></tr>';
         return;
       }
 
+      const role = currentUser ? currentUser.role : 'viewer';
+      const isAdmin = role === 'admin';
+      const isLead = role === 'lead';
+      const isAuditor = role === 'auditor';
+      const isTech = role === 'technician';
+
       logs.forEach((log, idx) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50';
+        tr.className = 'hover:bg-slate-50 transition-colors';
+
+        // 1. Батламж багана (Ахлах ажилтны батлах үйлдэл)
+        let approvalHtml = '';
+        if (log.status === 'approved') {
+          approvalHtml = `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px]"><i class="fa-solid fa-circle-check"></i> Баталсан</span>`;
+        } else {
+          if (isLead || isAdmin) {
+            approvalHtml = `
+              <button onclick="approveLog(${log.id})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition flex items-center gap-1 cursor-pointer">
+                <i class="fa-solid fa-check"></i> Батлах
+              </button>
+            `;
+          } else {
+            approvalHtml = `<span class="inline-flex items-center gap-1 text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 text-[10px]"><i class="fa-solid fa-clock"></i> Хүлээгдэж буй</span>`;
+          }
+        }
+
+        // 2. Ахлахын мэдээлэл багана
+        let leadApproverHtml = '-';
+        if (log.approvedBy) {
+          leadApproverHtml = `<div class="font-semibold text-slate-800">${log.approvedBy}</div><div class="text-[10px] text-slate-400 font-mono">${log.approvedDate || ''}</div>`;
+        }
+
+        // 3. Хяналтын дүгнэлт багана (Аудиторын дүгнэлт оруулах үйлдэл)
+        let auditHtml = '';
+        if (log.auditComment) {
+          auditHtml = `
+            <div class="bg-indigo-50/70 p-2 rounded-lg border border-indigo-100 text-[11px] text-indigo-900">
+              <div class="font-medium">${log.auditComment}</div>
+              <div class="text-[10px] text-indigo-500 font-semibold mt-1">— ${log.auditedBy || 'Хяналт'} (${log.auditedDate || ''})</div>
+            </div>
+          `;
+          if (isAuditor || isAdmin) {
+            auditHtml += `<button onclick="openAuditModal(${log.id})" class="text-[10px] text-indigo-600 hover:underline mt-1 block cursor-pointer">Дүгнэлт засах</button>`;
+          }
+        } else {
+          if (isAuditor || isAdmin) {
+            auditHtml = `
+              <button onclick="openAuditModal(${log.id})" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer">
+                <i class="fa-solid fa-pen-to-square"></i> Дүгнэлт бичих
+              </button>
+            `;
+          } else {
+            auditHtml = `<span class="text-slate-400 text-[11px]">-</span>`;
+          }
+        }
+
+        // 4. Үйлдлүүд (Засах, Устгах эрх)
+        let actionsHtml = `<div class="flex items-center justify-center gap-1">`;
+        const canEdit = isAdmin || (isTech && log.technician === currentUser.name && log.status !== 'approved');
+        const canDelete = isAdmin || (isLead && log.status !== 'approved') || (isTech && log.technician === currentUser.name && log.status !== 'approved');
+
+        if (canEdit) {
+          actionsHtml += `
+            <button onclick="editLog(${log.id})" class="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-slate-100 transition" title="Засах">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+          `;
+        }
+        if (canDelete) {
+          actionsHtml += `
+            <button onclick="deleteLog(${log.id})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition" title="Устгах">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          `;
+        }
+        actionsHtml += `</div>`;
+
         tr.innerHTML = `
-          <td class="px-3 py-3 text-center">${idx + 1}</td>
-          <td class="px-3 py-3 font-mono">${log.date || '-'}</td>
-          <td class="px-3 py-3">${log.action || '-'}</td>
-          <td class="px-3 py-3 text-rose-600">${log.issue || 'Хэвийн'}</td>
-          <td class="px-3 py-3">${log.parts || 'Байхгүй'}</td>
-          <td class="px-3 py-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100">${log.statusAfter || '-'}</span></td>
-          <td class="px-3 py-3">${log.technician || '-'}</td>
-          <td class="px-3 py-3">${log.status === 'approved' ? '✅ Баталсан' : '⏳ Хүлээгдэж буй'}</td>
-          <td class="px-3 py-3">${log.approvedBy || '-'}</td>
-          <td class="px-3 py-3">${log.auditComment || '-'}</td>
-          <td class="px-3 py-3 text-center no-print">
-            <button onclick="deleteLog(${log.id})" class="text-rose-500 hover:text-rose-700 text-xs"><i class="fa-solid fa-trash-can"></i></button>
-          </td>
+          <td class="px-3 py-3 text-center text-slate-400 font-bold">${idx + 1}</td>
+          <td class="px-3 py-3 font-mono font-semibold text-slate-800">${log.date || '-'}</td>
+          <td class="px-3 py-3 max-w-[220px] font-medium leading-relaxed">${log.action || '-'}</td>
+          <td class="px-3 py-3 text-rose-600 font-semibold">${log.issue || 'Хэвийн'}</td>
+          <td class="px-3 py-3 text-slate-600">${log.parts || 'Байхгүй'}</td>
+          <td class="px-3 py-3 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800">${log.statusAfter || '-'}</span></td>
+          <td class="px-3 py-3 font-semibold text-slate-800">${log.technician || '-'}</td>
+          <td class="px-3 py-3 whitespace-nowrap">${approvalHtml}</td>
+          <td class="px-3 py-3 whitespace-nowrap text-xs">${leadApproverHtml}</td>
+          <td class="px-3 py-3 min-w-[180px]">${auditHtml}</td>
+          <td class="px-3 py-3 text-center no-print">${actionsHtml}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -2603,6 +2675,125 @@ async function loadFromStorage() {
       };
 
       reader.readAsArrayBuffer(file);
+    };
+    // ================= БАТАЛГААЖУУЛАЛТ, АУДИТ, ЗАСАХ БА УСТГАХ ЛОГИК =================
+
+    // 1. Ахлах ажилтан үзлэг "Батлах"
+    window.approveLog = function(logId) {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
+
+      if (confirm('Энэхүү үзлэг, үйлчилгээний тайланг батлах уу?')) {
+        log.status = 'approved';
+        log.approvedBy = currentUser.name;
+        log.approvedDate = new Date().toISOString().split('T')[0];
+
+        saveDB();
+        renderCurrentAsset();
+        renderDashboardMetrics();
+        renderNotifications();
+        generateReport();
+        alert('Үзлэгийг амжилттай баталгаажууллаа!');
+      }
+    };
+
+    // 2. Хяналтын ажилтан дүгнэлт оруулах модал нээх/хаах
+    window.openAuditModal = function(logId) {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
+
+      document.getElementById('auditLogId').value = logId;
+      document.getElementById('auditComment').value = log.auditComment || '';
+      document.getElementById('auditModal').classList.remove('hidden');
+    };
+
+    window.closeAuditModal = function() {
+      document.getElementById('auditModal').classList.add('hidden');
+    };
+
+    // 3. Аудитын дүгнэлт хадгалах
+    window.handleAuditSubmit = function(e) {
+      e.preventDefault();
+      const logId = document.getElementById('auditLogId').value;
+      const comment = document.getElementById('auditComment').value.trim();
+
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
+
+      log.auditComment = comment;
+      log.auditedBy = currentUser.name;
+      log.auditedDate = new Date().toISOString().split('T')[0];
+
+      saveDB();
+      renderCurrentAsset();
+      generateReport();
+      closeAuditModal();
+      alert('Хяналтын дүгнэлт амжилттай хадгалагдлаа!');
+    };
+
+    // 4. Үзлэг засах (Edit)
+    window.editLog = function(logId) {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
+
+      document.getElementById('inspectionModalTitle').innerText = "Үзлэг засварлах";
+      document.getElementById('editInspectionLogId').value = log.id;
+      document.getElementById('inspTech').value = log.technician;
+      document.getElementById('inspDate').value = log.date;
+      document.getElementById('inspStatus').value = log.statusAfter || 'Хэвийн ажиллагаатай';
+
+      // Чекбоксуудыг цэвэрлэх ба оноох
+      ['chkTask1', 'chkTask2', 'chkTask3', 'chkTask4', 'chkTask5'].forEach(id => document.getElementById(id).checked = false);
+      if (log.action.includes("Үзлэг, үйлчилгээ хийв.")) document.getElementById('chkTask1').checked = true;
+      if (log.action.includes("Тоног төхөөрөмж сольж суурилуулсан.")) document.getElementById('chkTask2').checked = true;
+      if (log.action.includes("Үл тохирол арилгасан.")) document.getElementById('chkTask3').checked = true;
+      if (log.action.includes("Панелиудын бохирдлыг цэвэрлэж")) document.getElementById('chkTask4').checked = true;
+      if (log.action.includes("тохиргооны файлыг")) document.getElementById('chkTask5').checked = true;
+
+      // Гэмтлийн мэдээлэл оноох
+      if (log.issue && log.issue.startsWith("Гэмтэлтэй:")) {
+        document.getElementById('inspIssueType').value = 'Гэмтэлтэй';
+        toggleIssueDescription('Гэмтэлтэй');
+        document.getElementById('inspIssueDate').value = log.issueDate || '';
+        document.getElementById('inspIssueDesc').value = log.issue.replace("Гэмтэлтэй: ", "");
+      } else {
+        document.getElementById('inspIssueType').value = 'Хэвийн';
+        toggleIssueDescription('Хэвийн');
+      }
+
+      document.getElementById('inspectionModal').classList.remove('hidden');
+    };
+
+    // 5. Үзлэг устгах (Delete)
+    window.deleteLog = function(logId) {
+      if (!confirm('Энэхүү үзлэгийн бүртгэлийг устгахдаа итгэлтэй байна уу?')) return;
+
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+
+      a.logs = a.logs.filter(x => x.id != logId);
+
+      // Сүүлийн үзлэгийн төлөвөөр хөрөнгийн үндсэн төлөвийг шинэчлэх
+      if (a.logs.length > 0) {
+        a.status = a.logs[0].statusAfter || 'Хэвийн ажиллагаатай';
+        a.statusDate = a.logs[0].date;
+      }
+
+      saveDB();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      renderNotifications();
+      generateReport();
+      alert('Үзлэгийн бичиглэл устгагдлаа.');
     };
     // ================= ЭХЛҮҮЛЭХ =================
     window.addEventListener('DOMContentLoaded', () => {
