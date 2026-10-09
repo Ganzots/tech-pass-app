@@ -1985,7 +1985,101 @@
     window.closeUserMgmtModal = function() {
       document.getElementById('userMgmtModal').classList.add('hidden');
     };
+// 1. Үзлэгийн түүх харуулах функц
+    function renderMaintenanceLogs(asset) {
+      const tbody = document.getElementById('maintenanceTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
 
+      const logs = asset.logs || [];
+      if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center p-4 text-slate-400">Үзлэг хийгдээгүй байна</td></tr>';
+        return;
+      }
+
+      logs.forEach((log, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="px-3 py-3 text-center">${idx + 1}</td>
+          <td class="px-3 py-3 font-mono">${log.date || '-'}</td>
+          <td class="px-3 py-3">${log.action || '-'}</td>
+          <td class="px-3 py-3 text-rose-600">${log.issue || 'Хэвийн'}</td>
+          <td class="px-3 py-3">${log.parts || 'Байхгүй'}</td>
+          <td class="px-3 py-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100">${log.statusAfter || '-'}</span></td>
+          <td class="px-3 py-3">${log.technician || '-'}</td>
+          <td class="px-3 py-3">${log.status === 'approved' ? '✅ Баталсан' : '⏳ Хүлээгдэж буй'}</td>
+          <td class="px-3 py-3">${log.approvedBy || '-'}</td>
+          <td class="px-3 py-3">${log.auditComment || '-'}</td>
+          <td class="px-3 py-3 text-center no-print">
+            <button onclick="deleteLog(${log.id})" class="text-rose-500 hover:text-rose-700 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 2. Мэдэгдэл харуулах функц
+    function renderNotifications() {
+      const badge = document.getElementById('notifBadge');
+      const countText = document.getElementById('notifCountText');
+      const list = document.getElementById('notifListContainer');
+      if (!badge || !list) return;
+
+      let pendingCount = 0;
+      list.innerHTML = '';
+
+      assets.forEach(a => {
+        (a.logs || []).forEach(l => {
+          if (l.status === 'pending') {
+            pendingCount++;
+            const item = document.createElement('div');
+            item.className = 'p-3 hover:bg-slate-50 text-xs cursor-pointer';
+            item.innerHTML = `
+              <div class="font-bold text-slate-800">${a.model} (${a.journalNo})</div>
+              <div class="text-slate-500">${l.date} - ${l.action}</div>
+            `;
+            list.appendChild(item);
+          }
+        });
+      });
+
+      if (pendingCount > 0) {
+        badge.innerText = pendingCount;
+        badge.classList.remove('hidden');
+        countText.innerText = `${pendingCount} батлах дутуу`;
+      } else {
+        badge.classList.add('hidden');
+        countText.innerText = '0 шинэ';
+        list.innerHTML = '<div class="p-4 text-center text-slate-400">Шинэ мэдэгдэл байхгүй</div>';
+      }
+    }
+
+    // 3. Мэдэгдлийн цонхыг нээх/хаах функц
+    window.toggleNotificationPanel = function() {
+      const panel = document.getElementById('notifDropdown');
+      if (panel) panel.classList.toggle('hidden');
+    };
+
+    // 4. Зааварчилгаа болон Хэрэглэгчийн модал нээх функцүүд
+    window.openUserGuideModal = function() {
+      document.getElementById('userGuideModal').classList.remove('hidden');
+    };
+    window.openUserMgmtModal = function() {
+      document.getElementById('userMgmtModal').classList.remove('hidden');
+    };
+
+    /* ===== ЭНД ХҮРТЭЛ ОРУУЛААД ДУУСНА ===== */
+
+    // ================= ЭХЛҮҮЛЭХ =================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromStorage();
+      startLiveClock();
+      checkAuth();
+    });
+  </script>
+</body>
+</html>
     // ================= ЭХЛҮҮЛЭХ =================
     window.addEventListener('DOMContentLoaded', () => {
       loadFromStorage();
