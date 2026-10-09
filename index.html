@@ -2952,6 +2952,133 @@ async function loadFromStorage() {
       generateReport();
       alert('Үзлэгийн бичиглэл устгагдлаа.');
     };
+   // ================= АДМИН БҮРТГЭГДСЭН ТӨХӨӨРӨМЖҮҮД УДИРДАХ ЛОГИК =================
+    window.openAllAssetsModal = function() {
+      const catSel = document.getElementById('modalAdminCatFilter');
+      if (catSel) {
+        catSel.innerHTML = '<option value="ALL">Бүх ангилал (Бүгд)</option>';
+        deviceCategories.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          catSel.appendChild(opt);
+        });
+      }
+
+      document.getElementById('modalAdminSectionFilter').value = 'ALL';
+      if (catSel) catSel.value = 'ALL';
+
+      renderAdminAssetsTable();
+      document.getElementById('allAssetsAdminModal').classList.remove('hidden');
+    };
+
+    window.closeAllAssetsModal = function() {
+      document.getElementById('allAssetsAdminModal').classList.add('hidden');
+    };
+
+    window.filterAdminAssetsTable = function() {
+      renderAdminAssetsTable();
+    };
+
+    function renderAdminAssetsTable() {
+      const tbody = document.getElementById('adminAssetsTableBody');
+      const countEl = document.getElementById('adminTotalAssetCount');
+      if (!tbody) return;
+
+      const secVal = document.getElementById('modalAdminSectionFilter').value;
+      const catVal = document.getElementById('modalAdminCatFilter').value;
+
+      let filtered = assets.filter(a => {
+        const matchSec = (secVal === 'ALL') || (a.category === secVal);
+        const matchCat = (catVal === 'ALL') || ((a.deviceCategory || "Сервер болон компьютер") === catVal);
+        return matchSec && matchCat;
+      });
+
+      if (countEl) countEl.innerText = `${filtered.length} / ${assets.length}`;
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Сонгосон шүүлтүүрт тохирох төхөөрөмж олдсонгүй.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((a, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+          <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+          <td class="p-2.5 font-bold text-blue-700 font-mono">${a.journalNo}</td>
+          <td class="p-2.5 font-mono text-slate-700">${a.assetCode || '-'}</td>
+          <td class="p-2.5 font-semibold text-slate-900">${a.model}</td>
+          <td class="p-2.5 text-slate-600">${a.category}</td>
+          <td class="p-2.5 text-slate-600">${a.deviceCategory || '-'}</td>
+          <td class="p-2.5 text-slate-600">${a.location} (${a.owner})</td>
+          <td class="p-2.5 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${a.status === 'Гэмтсэн' ? 'bg-rose-100 text-rose-700' : (a.status === 'Засварт байгаа' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800')}">
+              ${a.status || 'Хэвийн'}
+            </span>
+          </td>
+          <td class="p-2.5 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="adminQuickEditAsset('${a.journalNo}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Засах">
+                <i class="fa-solid fa-pen text-xs"></i>
+              </button>
+              <button onclick="adminDeleteAsset('${a.journalNo}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Устгах">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.adminQuickEditAsset = function(journalNo) {
+      const a = assets.find(x => x.journalNo === journalNo);
+      if (!a) return;
+
+      const newModel = prompt("Марк, тип засах:", a.model);
+      if (newModel === null) return;
+
+      const newLocation = prompt("Байршил засах:", a.location);
+      if (newLocation === null) return;
+
+      const newStatus = prompt("Төлөв (Хэвийн ажиллагаатай / Гэмтсэн / Засварт байгаа / Актлагдсан):", a.status || "Хэвийн ажиллагаатай");
+      if (newStatus === null) return;
+
+      a.model = newModel.trim() || a.model;
+      a.location = newLocation.trim() || a.location;
+      a.status = newStatus.trim() || a.status;
+
+      saveDB();
+      renderAdminAssetsTable();
+      initAssetSelector();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      generateReport();
+      alert(`№${journalNo} төхөөрөмжийн мэдээлэл шинэчлэгдлээ.`);
+    };
+
+    window.adminDeleteAsset = function(journalNo) {
+      const a = assets.find(x => x.journalNo === journalNo);
+      if (!a) return;
+
+      if (!confirm(`Та "${a.model}" (Журнал: ${journalNo}) төхөөрөмжийг устгахдаа итгэлтэй байна уу?`)) return;
+
+      assets = assets.filter(x => x.journalNo !== journalNo);
+
+      if (currentAssetNo === journalNo && assets.length > 0) {
+        currentAssetNo = assets[0].journalNo;
+      }
+
+      saveDB();
+      renderAdminAssetsTable();
+      initAssetSelector();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      generateReport();
+      alert(`Төхөөрөмж амжилттай устгагдлаа.`);
+    };
     // ================= ЭХЛҮҮЛЭХ =================
     window.addEventListener('DOMContentLoaded', () => {
       loadFromStorage();
