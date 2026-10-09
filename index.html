@@ -2491,7 +2491,15 @@ async function loadFromStorage() {
       const a = assets.find(x => x.journalNo === currentAssetNo);
       if (!a) return;
       if (!a.logs) a.logs = [];
-
+// Бичсэн сэлбэгүүдийг нэгтгэх
+      const partsArr = [];
+      document.querySelectorAll('#partsInputTableBody tr').forEach(tr => {
+        const pName = tr.querySelector('.part-name')?.value.trim();
+        const pUnit = tr.querySelector('.part-unit')?.value.trim() || 'ш';
+        const pQty = tr.querySelector('.part-qty')?.value.trim() || '1';
+        if (pName) partsArr.push(`${pName} (${pQty} ${pUnit})`);
+      });
+      const partsResult = partsArr.length > 0 ? partsArr.join(', ') : 'Байхгүй';
       const isLeadOrAdmin = currentUser.role === 'lead' || currentUser.role === 'admin';
       const logId = document.getElementById('editInspectionLogId').value;
       const statusAfter = document.getElementById('inspStatus').value;
@@ -2507,6 +2515,7 @@ async function loadFromStorage() {
           l.statusAfter = statusAfter;
           l.issue = issueText;
           l.issueDate = issueType === 'Гэмтэлтэй' ? issueDateVal : null;
+           l.parts = partsResult;
         }
       } else {
         a.logs.unshift({
@@ -2516,7 +2525,7 @@ async function loadFromStorage() {
           statusAfter: statusAfter,
           issue: issueText,
           issueDate: issueType === 'Гэмтэлтэй' ? issueDateVal : null,
-          parts: 'Байхгүй',
+          parts: partsResult,
           technician: document.getElementById('inspTech').value,
           status: isLeadOrAdmin ? 'approved' : 'pending',
           approvedBy: isLeadOrAdmin ? currentUser.name : null,
@@ -2942,7 +2951,25 @@ async function loadFromStorage() {
       `;
       tbody.appendChild(tr);
     };
-
+// Сэлбэг нэмэх мөр үүсгэх функц
+    window.addPartRow = function() {
+      const tbody = document.getElementById('partsInputTableBody');
+      if (!tbody) return;
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1.5 text-center font-bold text-slate-400">${idx}</td>
+        <td class="p-1"><input type="text" placeholder="Сэлбэгийн нэр..." class="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs part-name" required></td>
+        <td class="p-1"><input type="text" value="ш" class="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs part-unit"></td>
+        <td class="p-1"><input type="text" value="1" class="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs text-center part-qty"></td>
+        <td class="p-1 text-center">
+          <button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700 cursor-pointer p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    };
     window.handleNewAssetSubmit = function(e) {
       e.preventDefault();
 
