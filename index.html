@@ -1059,6 +1059,7 @@
 
   <!-- ================= JAVASCRIPT ҮНДСЭН КОД ================= -->
   <script>
+    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxe0TiQVCx1L0a3Zk0ymhd7DJe5gGnNuKyDoJa8WOx9owj3T8TmeAfmVKg7dtLkFSY/exec";
     const ROLE_TITLES = {
       admin: 'Админ',
       lead: 'Ахлах ажилтан (Батлах)',
@@ -1206,7 +1207,8 @@
     let selectedSectionFilter = "ALL";
     let selectedDeviceCatFilter = "ALL";
 
-    function loadFromStorage() {
+async function loadFromStorage() {
+      // 1. Эхлээд local cache-ээс түргэн ачаална
       try {
         const u = localStorage.getItem('sys_users_v30');
         if (u) users = JSON.parse(u);
@@ -1220,12 +1222,39 @@
         console.warn('Storage read error.');
       }
 
+      // 2. Google Sheets-ээс сүүлийн үеийн бодит өгөгдлийг татах
+      if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+        try {
+          const res = await fetch(GOOGLE_SHEET_API_URL);
+          const data = await res.json();
+          
+          if (data.users && data.users.length > 0) {
+            users = data.users;
+            localStorage.setItem('sys_users_v30', JSON.stringify(users));
+          }
+          if (data.assets && data.assets.length > 0) {
+            assets = data.assets;
+            localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
+          }
+
+          // Дэлгэцийг шинэчлэх
+          initSectionFilterSelector();
+          initAssetSelector();
+          renderCurrentAsset();
+          renderDashboardMetrics();
+          renderNotifications();
+        } catch (err) {
+          console.warn("Google Sheets-ээс өгөгдөл татахад алдаа гарлаа (Офлайн өгөгдлийг ашиглаж байна):", err);
+        }
+      }
+
       assets.forEach(a => {
         if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
       });
     }
 
     function saveDB() {
+      // 1. LocalStorage-д шуурхай хадгалах
       try {
         localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
         localStorage.setItem('sys_users_v30', JSON.stringify(users));
@@ -1237,6 +1266,24 @@
         }
       } catch (err) {
         console.error('Save failed:', err);
+      }
+
+      // 2. Google Sheets рүү синхрончлон илгээх
+      if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+        fetch(GOOGLE_SHEET_API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "saveAll",
+            users: users,
+            assets: assets
+          })
+        }).then(() => {
+          console.log("Google Sheets рүү амжилттай хадгалагдлаа.");
+        }).catch(err => {
+          console.error("Google Sheets рүү хадгалахад алдаа гарлаа:", err);
+        });
       }
     }
 // ================= 10 МИНУТЫН ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР =================
