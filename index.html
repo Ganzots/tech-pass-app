@@ -97,7 +97,7 @@
         </span>
       </div>
 
-      <!-- Төв: ЦАГ АГААР, ОН САР, ЦАГИЙН АМЬД ВИДЖЕТ -->
+      <!-- Төв: ЦАГ АГААР, ОН САР, ЦАГИЙН АМЬД ВИДЖЕТ БА 10 МИНУТЫН ТООЛУУР -->
       <div class="px-4 py-1.5 bg-slate-800/90 rounded-2xl border border-slate-700 flex items-center gap-3 text-xs shadow-inner">
         <div class="flex items-center gap-1.5 text-amber-400 font-bold">
           <i class="fa-solid fa-sun text-sm"></i>
@@ -112,6 +112,14 @@
         <div class="flex items-center gap-1.5 text-indigo-300 font-mono font-bold">
           <i class="fa-regular fa-clock text-slate-400"></i>
           <span id="liveClockText">--:--:--</span>
+        </div>
+        <span class="text-slate-600 font-bold">|</span>
+        <!-- 10 МИНУТ БУУРАХ ТООЛУУР -->
+        <div class="flex items-center gap-1.5 text-rose-300 bg-rose-950/60 px-2.5 py-0.5 rounded-lg border border-rose-800/50" title="Нэвтрэлтийн хугацаа дуусахад автоматаар гарна">
+          <i class="fa-solid fa-hourglass-half text-[11px] animate-pulse"></i>
+          <span class="text-slate-400 text-[10px]">Гарах:</span>
+          <span id="sessionTimerText" class="font-mono font-bold text-rose-200">10:00</span>
+          <button onclick="resetSessionTimer()" class="ml-1 text-[10px] text-sky-400 hover:text-sky-200 underline cursor-pointer" title="Хугацааг дахин 10 минут болгох">Сунгах</button>
         </div>
       </div>
 
@@ -1224,7 +1232,52 @@
         console.error('Save failed:', err);
       }
     }
+// ================= 10 МИНУТЫН СЕСШН ТООЛУУР =================
+    const SESSION_DURATION_SECONDS = 10 * 60; // 10 минут = 600 секунд
+    let sessionRemainingSeconds = SESSION_DURATION_SECONDS;
+    let sessionIntervalId = null;
 
+    function startSessionTimer() {
+      // Хуучин тоолуур байвал зогсоох
+      if (sessionIntervalId) clearInterval(sessionIntervalId);
+      sessionRemainingSeconds = SESSION_DURATION_SECONDS;
+      updateSessionDisplay();
+
+      sessionIntervalId = setInterval(() => {
+        sessionRemainingSeconds--;
+        updateSessionDisplay();
+
+        // Хугацаа дуусах үед
+        if (sessionRemainingSeconds <= 0) {
+          clearInterval(sessionIntervalId);
+          alert('Нэвтрэлтийн 10 минутын хугацаа дууссан тул системээс автоматаар гарлаа.');
+          currentUser = null;
+          saveDB();
+          checkAuth();
+        }
+      }, 1000);
+    }
+
+    function updateSessionDisplay() {
+      const timerEl = document.getElementById('sessionTimerText');
+      if (!timerEl) return;
+      const mm = String(Math.floor(sessionRemainingSeconds / 60)).padStart(2, '0');
+      const ss = String(sessionRemainingSeconds % 60).padStart(2, '0');
+      timerEl.innerText = `${mm}:${ss}`;
+    }
+
+    // Хугацааг 10 минут болгож дахин сэргээх (Сунгах товч)
+    window.resetSessionTimer = function() {
+      sessionRemainingSeconds = SESSION_DURATION_SECONDS;
+      updateSessionDisplay();
+    };
+
+    function stopSessionTimer() {
+      if (sessionIntervalId) {
+        clearInterval(sessionIntervalId);
+        sessionIntervalId = null;
+      }
+    }
     function startLiveClock() {
       const dayNames = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
       function update() {
@@ -1253,6 +1306,7 @@
       if (currentUser) {
         loginScreen.classList.add('hidden');
         mainApp.classList.remove('hidden');
+        startSessionTimer();
         applyUserPermissions();
         renderDeviceCategorySelectors();
         initSectionFilterSelector();
@@ -1301,6 +1355,7 @@
 
     function handleLogout() {
       if (confirm('Системээс гарах уу?')) {
+        stopSessionTimer();
         currentUser = null;
         saveDB();
         checkAuth();
