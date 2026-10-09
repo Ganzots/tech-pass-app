@@ -2328,10 +2328,17 @@ async function loadFromStorage() {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
 
-        // 1. Батламж багана (Ахлах ажилтны батлах үйлдэл)
+        // 1. Батламж багана (Ахлах ажилтны батлах үйлдэл + огноо, цаг)
         let approvalHtml = '';
         if (log.status === 'approved') {
-          approvalHtml = `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px]"><i class="fa-solid fa-circle-check"></i> Баталсан</span>`;
+          approvalHtml = `
+            <div>
+              <span class="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px]">
+                <i class="fa-solid fa-circle-check"></i> Баталсан
+              </span>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5">${log.approvedDate || ''}</div>
+            </div>
+          `;
         } else {
           if (isLead || isAdmin) {
             approvalHtml = `
@@ -2907,9 +2914,13 @@ async function loadFromStorage() {
       if (!log) return;
 
       if (confirm('Энэхүү үзлэг, үйлчилгээний тайланг батлах уу?')) {
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
         log.status = 'approved';
         log.approvedBy = currentUser.name;
-        log.approvedDate = new Date().toISOString().split('T')[0];
+        log.approvedDate = formattedTimestamp;
 
         // Баталсан үзлэг нь тухайн төхөөрөмжийн хамгийн сүүлийн үзлэг бол үндсэн төлөвийг шинэчлэх
         if (a.logs && a.logs.length > 0 && a.logs[0].id == logId) {
