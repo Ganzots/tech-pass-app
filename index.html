@@ -114,7 +114,11 @@
           <span id="liveClockText">--:--:--</span>
         </div>
       </div>
-
+<!-- СИНХРОНЧЛОЛЫН ТӨЛӨВ ВИДЖЕТ -->
+      <div id="syncStatusBadge" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-slate-800 border border-slate-700 text-slate-300 transition-all">
+        <i id="syncStatusIcon" class="fa-solid fa-cloud text-blue-400"></i>
+        <span id="syncStatusText">Холбогдсон</span>
+      </div>
       <!-- Баруун: Үйлдлийн товчнууд (Авсаархан, зөвхөн Icon хэлбэртэй) -->
       <div class="flex items-center gap-1.5 relative">
         
@@ -228,6 +232,14 @@
             <button onclick="exportAllAssetsToExcel()" class="inline-flex items-center gap-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer" title="Бүх бүртгэлтэй хөрөнгийг Excel болгож авах">
               <i class="fa-solid fa-file-excel"></i> Экспортлох
             </button>
+            <!-- НӨӨЦЛӨХ БА СЭРГЭЭХ ТОХИРГОО -->
+            <button onclick="backupAllDataToJson()" class="inline-flex items-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer" title="Бүх өгөгдлийг JSON файл болгон нөөцлөх">
+              <i class="fa-solid fa-download"></i> Нөөцлөх
+            </button>
+            <label class="cursor-pointer inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-semibold" title="Өмнө нь татсан JSON файлаас өгөгдлийг буцааж сэргээх">
+              <i class="fa-solid fa-upload"></i> Сэргээх
+              <input type="file" id="jsonBackupInput" accept=".json" onchange="restoreDataFromJson(event)" class="hidden">
+            </label>
           </div>
         </div>
 
@@ -1418,8 +1430,31 @@ async function loadFromStorage() {
       });
     }
 
+   // Google Sheets рүү хадгалж буй төлөвийг дэлгэцэнд харуулах функц
+    function updateSyncStatus(status, text) {
+      const badge = document.getElementById('syncStatusBadge');
+      const icon = document.getElementById('syncStatusIcon');
+      const textEl = document.getElementById('syncStatusText');
+      if (!badge || !icon || !textEl) return;
+
+      badge.classList.remove('hidden');
+
+      if (status === 'syncing') {
+        badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-amber-950/40 border border-amber-500/40 text-amber-300";
+        icon.className = "fa-solid fa-arrows-rotate fa-spin text-amber-400";
+        textEl.innerText = text || "Google Sheets рүү хадгалж байна...";
+      } else if (status === 'synced') {
+        badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-emerald-950/40 border border-emerald-500/40 text-emerald-300";
+        icon.className = "fa-solid fa-cloud-arrow-up text-emerald-400";
+        textEl.innerText = text || "Бүрэн хадгалагдсан";
+      } else if (status === 'error') {
+        badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-rose-950/40 border border-rose-500/40 text-rose-300";
+        icon.className = "fa-solid fa-cloud-slash text-rose-400";
+        textEl.innerText = text || "Сүлжээ тасарсан (Офлайн хадгалав)";
+      }
+    }
     function saveDB() {
-      // 1. Хөтөч дээр шуурхай хадгалах
+      // 1. Хөтөч дээр шуурхай хадгалах (LocalStorage)
       try {
         localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
         localStorage.setItem('sys_users_v30', JSON.stringify(users));
@@ -1433,8 +1468,11 @@ async function loadFromStorage() {
         console.error('Save failed:', err);
       }
 
-      // 2. Google Sheets рүү алдаагүй найдвартай илгээх
+      // 2. Google Sheets рүү илгээх ба синхрончлолын төлөвийг дэлгэцэнд харуулах
       if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+        // Хадгалж эхэлмэгц шар өнгийн "Хадгалж байна..." төлөв харуулна
+        updateSyncStatus('syncing', 'Хадгалж байна...');
+
         const payload = JSON.stringify({
           action: "saveAll",
           users: users,
@@ -1447,13 +1485,22 @@ async function loadFromStorage() {
             "Content-Type": "text/plain;charset=utf-8"
           },
           body: payload
-        }).then(res => res.json())
-          .then(data => {
-            console.log("Google Sheets дээр амжилттай хадгалагдлаа:", data);
-          })
-          .catch(err => {
-            console.warn("Google Sheets рүү хадгалах явцад анхааруулга гарлаа:", err);
-          });
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log("Google Sheets дээр амжилттай хадгалагдлаа:", data);
+          // Амжилттай болмогц ногоон өнгийн "Бүрэн хадгалагдсан" төлөв рүү шилжинэ
+          updateSyncStatus('synced', 'Бүрэн хадгалагдсан');
+          // 4 секундийн дараа тайван "Холбогдсон" төлөвт шилжинэ
+          setTimeout(() => {
+            updateSyncStatus('synced', 'Холбогдсон');
+          }, 4000);
+        })
+        .catch(err => {
+          console.warn("Google Sheets рүү хадгалах явцад анхааруулга гарлаа:", err);
+          // Алдаа гарвал эсвэл сүлжээ тасарвал улаан "Офлайн (Сүлжээгүй)" төлөв харуулна
+          updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
+        });
       }
     }
 // ================= 10 МИНУТЫН ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР =================
@@ -2795,6 +2842,65 @@ async function loadFromStorage() {
       renderUserList();
       e.target.reset();
       alert('Шинэ хэрэглэгч амжилттай бүртгэгдлээ!');
+    };
+    // ================= ӨГӨГДЛИЙГ БҮРЭН НӨӨЦЛӨХ (BACKUP) БА СЭРГЭЭХ (RESTORE) =================
+
+    // 1. Бүх баазыг JSON файл болгож татах
+    window.backupAllDataToJson = function() {
+      const backupData = {
+        version: "v30",
+        exportDate: new Date().toISOString(),
+        users: users,
+        deviceCategories: deviceCategories,
+        assets: assets
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `Passport_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    };
+
+    // 2. Татсан JSON файлаас өгөгдлийг буцааж сэргээх
+    window.restoreDataFromJson = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.assets && Array.isArray(parsed.assets)) {
+            if (confirm("Анхаар! Одоо байгаа өгөгдөл уг нөөц файлын өгөгдлөөр солигдоно. Сэргээх үү?")) {
+              assets = parsed.assets;
+              if (parsed.users) users = parsed.users;
+              if (parsed.deviceCategories) deviceCategories = parsed.deviceCategories;
+
+              saveDB();
+              renderDeviceCategorySelectors();
+              initSectionFilterSelector();
+              initAssetSelector();
+              renderCurrentAsset();
+              renderDashboardMetrics();
+              renderNotifications();
+              generateReport();
+
+              alert("Өгөгдөл амжилттай сэргээгдлээ!");
+            }
+          } else {
+            alert("Нөөц файлын бүтэц буруу байна!");
+          }
+        } catch (err) {
+          alert("Файл уншихад алдаа гарлаа: " + err.message);
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
     };
     // ================= EXCEL ЗАГВАР ТАТАХ, ИМПОРТ БОЛОН ЭКСПОРТ =================
 
