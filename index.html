@@ -2344,10 +2344,27 @@ async function loadFromStorage() {
           }
         }
 
-        // 2. Ахлахын мэдээлэл багана
+        // 2. Ахлахын мэдээлэл багана (Хяналтын шийдвэрээс хамаарч өөрчлөгдөнө)
         let leadApproverHtml = '-';
-        if (log.approvedBy) {
-          leadApproverHtml = `<div class="font-semibold text-slate-800">${log.approvedBy}</div><div class="text-[10px] text-slate-400 font-mono">${log.approvedDate || ''}</div>`;
+        if (log.auditStatus === 'rejected') {
+          leadApproverHtml = `
+            <span class="inline-flex items-center gap-1 text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 text-[10px]">
+              <i class="fa-solid fa-circle-xmark"></i> Шаардлага хангаагүй
+            </span>
+            <div class="text-[10px] text-slate-400 font-mono mt-0.5">${log.auditedDate || ''}</div>
+          `;
+        } else if (log.auditStatus === 'accepted') {
+          leadApproverHtml = `
+            <span class="inline-flex items-center gap-1 text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 text-[10px]">
+              <i class="fa-solid fa-circle-check"></i> Танилцсан
+            </span>
+            <div class="text-[10px] text-slate-400 font-mono mt-0.5">${log.auditedDate || ''}</div>
+          `;
+        } else if (log.approvedBy) {
+          leadApproverHtml = `
+            <div class="font-semibold text-slate-800">${log.approvedBy}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${log.approvedDate || ''}</div>
+          `;
         }
 
 // 3. Хяналтын дүгнэлт багана ("Танилцав", "Шаардлага хангаагүй" + Огноо, цаг)
@@ -2925,51 +2942,57 @@ async function loadFromStorage() {
       document.getElementById('auditModal').classList.add('hidden');
     };
 
-    // 3. Аудитын дүгнэлт хадгалах
-    window.handleAuditSubmit = function(e) {
-      e.preventDefault();
-      const logId = document.getElementById('auditLogId').value;
-      const comment = document.getElementById('auditComment').value.trim();
-
-      const a = assets.find(x => x.journalNo === currentAssetNo);
-      if (!a || !a.logs) return;
-      const log = a.logs.find(x => x.id == logId);
-      if (!log) return;
-
-      log.auditComment = comment;
-      log.auditedBy = currentUser.name;
-      log.auditedDate = new Date().toISOString().split('T')[0];
-
-      saveDB();
-      renderCurrentAsset();
-      generateReport();
-      closeAuditModal();
-      alert('Хяналтын дүгнэлт амжилттай хадгалагдлаа!');
-    };
-// Хяналтын ажилтан шууд "Танилцав" эсвэл "Шаардлага хангаагүй" төлөв өгөх функц
+    // Хяналтын ажилтан шийдвэр гаргах үйлдэл
     window.setAuditDecision = function(logId, status) {
       const a = assets.find(x => x.journalNo === currentAssetNo);
       if (!a || !a.logs) return;
       const log = a.logs.find(x => x.id == logId);
       if (!log) return;
 
-      let comment = '';
-      if (status === 'rejected') {
-        const inputReason = prompt('Шаардлага хангаагүй шалтгаан / тайлбараа оруулна уу:', log.auditComment || '');
-        if (inputReason === null) return; // Цуцалбал зогсооно
-        comment = inputReason.trim() || 'Шаардлага хангаагүй гэж үзэв';
-      } else {
-        const optionalNote = prompt('Нэмэлт тэмдэглэл оруулах уу? (Заавал бичих шаардлагагүй, хоосон үлдээж болно):', log.auditComment || '');
-        if (optionalNote === null) return;
-        comment = optionalNote.trim();
-      }
-
-      // Яг одоогийн огноо болон цаг, минутыг авах (Жишээ: 2026-10-09 13:45)
       const now = new Date();
       const pad = n => String(n).padStart(2, '0');
       const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-      log.auditStatus = status; // 'accepted' эсвэл 'rejected'
+      if (status === 'accepted') {
+        // 1. ТАНИЛЦАВ: Ямар ч цонх асуухгүй, шууд танилцсан төлөвт оруулж шинэчилнэ
+        log.auditStatus = 'accepted';
+        log.auditComment = '';
+        log.auditedBy = currentUser ? currentUser.name : 'Хяналтын ажилтан';
+        log.auditedDate = formattedTimestamp;
+
+        saveDB();
+        renderCurrentAsset();
+        generateReport();
+      } else if (status === 'rejected') {
+        // 2. ШААРДЛАГА ХАНГААГҮЙ: Хөтчийн prompt биш, дотоод auditModal цонхыг нээнэ
+        document.getElementById('auditLogId').value = logId;
+        document.getElementById('auditComment').value = log.auditComment || '';
+        document.getElementById('auditModalTitle').innerText = "Шаардлага хангаагүй шалтгаан бичих";
+        document.getElementById('auditModal').classList.remove('hidden');
+      }
+    };
+
+    // Шалтгаан бичээд "Хадгалах" товч дарах үед ажиллах функц
+    window.handleAuditSubmit = function(e) {
+      e.preventDefault();
+      const logId = document.getElementById('auditLogId').value;
+      const comment = document.getElementById('auditComment').value.trim();
+
+      if (!comment) {
+        alert("Шаардлага хангаагүй шалтгаанаа заавал бичнэ үү!");
+        return;
+      }
+
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a || !a.logs) return;
+      const log = a.logs.find(x => x.id == logId);
+      if (!log) return;
+
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      log.auditStatus = 'rejected';
       log.auditComment = comment;
       log.auditedBy = currentUser ? currentUser.name : 'Хяналтын ажилтан';
       log.auditedDate = formattedTimestamp;
@@ -2977,7 +3000,7 @@ async function loadFromStorage() {
       saveDB();
       renderCurrentAsset();
       generateReport();
-      alert(`Хяналтын үр дүн ("${status === 'accepted' ? 'Танилцав' : 'Шаардлага хангаагүй'}") амжилттай бүртгэгдлээ!`);
+      closeAuditModal();
     };
     // 4. Үзлэг засах (Edit)
     window.editLog = function(logId) {
