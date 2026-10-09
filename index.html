@@ -2159,12 +2159,6 @@ async function loadFromStorage() {
         return;
       }
 
-      const role = currentUser ? currentUser.role : 'viewer';
-      const isAdmin = role === 'admin';
-      const isLead = role === 'lead';
-      const isAuditor = role === 'auditor';
-      const isTech = role === 'technician';
-
       logs.forEach((log, idx) => {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
