@@ -218,13 +218,16 @@
       <div class="flex flex-wrap items-center justify-between gap-3 no-print pt-1">
         <div class="flex flex-wrap items-center gap-2">
           <div id="excelActions" class="hidden flex items-center gap-2">
-            <button onclick="downloadExcelTemplate()" class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer">
-              <i class="fa-solid fa-file-excel"></i> Excel загвар татах
+            <button onclick="downloadExcelTemplate()" class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer" title="Бөөнөөр оруулах загвар файл татах">
+              <i class="fa-solid fa-file-arrow-down"></i> Загвар татах
             </button>
-            <label class="cursor-pointer inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-semibold">
-              <i class="fa-solid fa-file-import"></i> Excel-ээс импортлох
+            <label class="cursor-pointer inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-semibold" title="Бэлдсэн Excel файлаас оруулах">
+              <i class="fa-solid fa-file-import"></i> Импортлох
               <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)" class="hidden">
             </label>
+            <button onclick="exportAllAssetsToExcel()" class="inline-flex items-center gap-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer" title="Бүх бүртгэлтэй хөрөнгийг Excel болгож авах">
+              <i class="fa-solid fa-file-excel"></i> Экспортлох
+            </button>
           </div>
         </div>
 
@@ -2425,6 +2428,181 @@ async function loadFromStorage() {
       renderUserList();
       e.target.reset();
       alert('Шинэ хэрэглэгч амжилттай бүртгэгдлээ!');
+    };
+    // ================= EXCEL ЗАГВАР ТАТАХ, ИМПОРТ БОЛОН ЭКСПОРТ =================
+
+    // 1. Загвар Excel татах
+    window.downloadExcelTemplate = function() {
+      const templateData = [
+        {
+          "Хөрөнгийн код*": "FA-2026-0099",
+          "Марк, тип*": "Dell OptiPlex 7090",
+          "Хамаарах систем*": "Тоолуурын нэгдсэн систем",
+          "Төхөөрөмжийн ангилал*": "Сервер болон компьютер",
+          "Байршил*": "ДҮТ-102",
+          "Эзэмшигч*": "Ц.Ганзориг",
+          "Алба": "МТХА",
+          "Албан тушаал": "Инженер",
+          "Ашиглалтад орсон огноо (YYYY-MM-DD)*": "2026-01-15",
+          "Эдлэгдэх хугацаа": "8 жил",
+          "Үзлэгийн давтамж": "улиралд нэг удаа",
+          "Төлөв": "Хэвийн ажиллагаатай"
+        }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Загвар");
+      XLSX.writeFile(wb, "Тоног_төхөөрөмж_импорт_загвар.xlsx");
+    };
+
+    // 2. Бүх төхөөрөмжийг Excel болгон экспортлох
+    window.exportAllAssetsToExcel = function() {
+      if (!assets || assets.length === 0) {
+        alert("Экспортлох өгөгдөл байхгүй байна.");
+        return;
+      }
+
+      const exportData = assets.map((a, idx) => ({
+        "№": idx + 1,
+        "Журналын №": a.journalNo,
+        "Хөрөнгийн код": a.assetCode || "",
+        "Марк, тип": a.model || "",
+        "Хамаарах систем": a.category || "",
+        "Төхөөрөмжийн ангилал": a.deviceCategory || "",
+        "Байршил": a.location || "",
+        "Эзэмшигч": a.owner || "",
+        "Алба": a.dept || "",
+        "Албан тушаал": a.role || "",
+        "Ашиглалтад орсон огноо": a.commissionedDate || "",
+        "Эдлэгдэх хугацаа": a.lifespan || "",
+        "Үзлэгийн давтамж": a.interval || "",
+        "Одоогийн төлөв": a.status || "Хэвийн ажиллагаатай",
+        "Үзлэгийн тоо": (a.logs || []).length
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Төхөөрөмжүүд");
+      XLSX.writeFile(wb, `Тоног_төхөөрөмжийн_бүртгэл_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    // 3. Excel-ээс уншиж олноор оруулах (Импорт)
+    window.handleExcelImport = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rows = XLSX.utils.sheet_to_json(worksheet);
+
+          if (!rows || rows.length === 0) {
+            alert("Excel файл хоосон эсвэл өгөгдөл танигдсангүй!");
+            return;
+          }
+
+          let addedCount = 0;
+          let errors = [];
+
+          rows.forEach((row, index) => {
+            const rowNum = index + 2; // 1-р мөр нь толгой тул
+
+            // Баганын утгуудыг унших (Нэршил зөрөхөөс сэргийлж уян хатан шалгана)
+            const assetCode = String(row["Хөрөнгийн код*"] || row["Хөрөнгийн код"] || row["AssetCode"] || "").trim();
+            const model = String(row["Марк, тип*"] || row["Марк, тип"] || row["Model"] || "").trim();
+            const category = String(row["Хамаарах систем*"] || row["Хамаарах систем"] || row["Систем"] || "").trim();
+            const deviceCategory = String(row["Төхөөрөмжийн ангилал*"] || row["Төхөөрөмжийн ангилал"] || "Сервер болон компьютер").trim();
+            const location = String(row["Байршил*"] || row["Байршил"] || "").trim();
+            const owner = String(row["Эзэмшигч*"] || row["Эзэмшигч"] || (currentUser ? currentUser.name : "МТХА")).trim();
+            const dept = String(row["Алба"] || (currentUser ? currentUser.dept : "МТХА")).trim();
+            const role = String(row["Албан тушаал"] || "").trim();
+            const commDate = String(row["Ашиглалтад орсон огноо (YYYY-MM-DD)*"] || row["Ашиглалтад орсон огноо"] || "2026-01-01").trim();
+            const lifespan = String(row["Эдлэгдэх хугацаа"] || "8 жил").trim();
+            const interval = String(row["Үзлэгийн давтамж"] || "улиралд нэг удаа").trim();
+            const status = String(row["Төлөв"] || "Хэвийн ажиллагаатай").trim();
+
+            // Шаардлагатай талбаруудыг шалгах
+            if (!model || !category) {
+              errors.push(`Мөр ${rowNum}: 'Марк, тип' эсвэл 'Хамаарах систем' дутуу байна.`);
+              return;
+            }
+
+            // Хөрөнгийн код давхардлыг шалгах
+            if (assetCode && assets.some(a => a.assetCode && a.assetCode.toLowerCase() === assetCode.toLowerCase())) {
+              errors.push(`Мөр ${rowNum}: Хөрөнгийн код '${assetCode}' системд аль хэдийн бүртгэгдсэн байна.`);
+              return;
+            }
+
+            // Ангилал системд байхгүй бол автоматаар нэмэх
+            if (deviceCategory && !deviceCategories.includes(deviceCategory)) {
+              deviceCategories.push(deviceCategory);
+            }
+
+            // Журналын дугаар автоматаар үүсгэх
+            const year = commDate ? commDate.substring(0, 4) : "2026";
+            const sysCode = SYSTEM_CODES[category] || "01";
+            const count = assets.filter(a => a.category === category).length + 1;
+            const seq = String(count).padStart(3, '0');
+            const journalNo = `${year}${sysCode}${seq}`;
+
+            const newAsset = {
+              journalNo: journalNo,
+              assetCode: assetCode,
+              category: category,
+              deviceCategory: deviceCategory,
+              model: model,
+              location: location || "Тодорхойгүй",
+              owner: owner,
+              dept: dept,
+              role: role,
+              commissionedDate: commDate,
+              lifespan: lifespan,
+              interval: interval,
+              status: status,
+              statusDate: commDate,
+              specs: [],
+              accessories: [],
+              logs: []
+            };
+
+            assets.unshift(newAsset);
+            addedCount++;
+          });
+
+          // Хэрэв алдаатай мөр байвал модалаар харуулах
+          if (errors.length > 0) {
+            const errModal = document.getElementById('excelErrorModal');
+            const errList = document.getElementById('excelErrorList');
+            if (errList && errModal) {
+              errList.innerHTML = errors.map(err => `<div class="p-2 text-rose-700">${err}</div>`).join('');
+              errModal.classList.remove('hidden');
+            }
+          }
+
+          if (addedCount > 0) {
+            saveDB();
+            renderDeviceCategorySelectors();
+            initAssetSelector();
+            renderCurrentAsset();
+            renderDashboardMetrics();
+            generateReport();
+            alert(`Нийт ${addedCount} төхөөрөмж амжилттай импортлогдож, Google Sheets-д хадгалагдлаа!`);
+          }
+
+        } catch (err) {
+          console.error("Excel унших алдаа:", err);
+          alert("Excel файлыг задлахад алдаа гарлаа: " + err.message);
+        } finally {
+          event.target.value = ""; // Дахин ижил файл сонгох боломжтой болгох
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
     };
     // ================= ЭХЛҮҮЛЭХ =================
     window.addEventListener('DOMContentLoaded', () => {
