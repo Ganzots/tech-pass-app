@@ -1254,7 +1254,7 @@ async function loadFromStorage() {
     }
 
     function saveDB() {
-      // 1. LocalStorage-д шуурхай хадгалах
+      // 1. Хөтөч дээр шуурхай хадгалах
       try {
         localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
         localStorage.setItem('sys_users_v30', JSON.stringify(users));
@@ -1268,22 +1268,27 @@ async function loadFromStorage() {
         console.error('Save failed:', err);
       }
 
-      // 2. Google Sheets рүү синхрончлон илгээх
+      // 2. Google Sheets рүү алдаагүй найдвартай илгээх
       if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+        const payload = JSON.stringify({
+          action: "saveAll",
+          users: users,
+          assets: assets
+        });
+
         fetch(GOOGLE_SHEET_API_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "saveAll",
-            users: users,
-            assets: assets
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: payload
+        }).then(res => res.json())
+          .then(data => {
+            console.log("Google Sheets дээр амжилттай хадгалагдлаа:", data);
           })
-        }).then(() => {
-          console.log("Google Sheets рүү амжилттай хадгалагдлаа.");
-        }).catch(err => {
-          console.error("Google Sheets рүү хадгалахад алдаа гарлаа:", err);
-        });
+          .catch(err => {
+            console.warn("Google Sheets рүү хадгалах явцад анхааруулга гарлаа:", err);
+          });
       }
     }
 // ================= 10 МИНУТЫН ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР =================
@@ -2205,7 +2210,222 @@ async function loadFromStorage() {
     };
 
     /* ===== ЭНД ХҮРТЭЛ ОРУУЛААД ДУУСНА ===== */
+// ================= ТӨХӨӨРӨМЖ НЭМЭХ ЛОГИК =================
+    window.openNewAssetModal = function() {
+      const modal = document.getElementById('newAssetModal');
+      const form = document.getElementById('newAssetForm');
+      if (form) form.reset();
+      
+      const commDate = document.getElementById('inpCommDate');
+      if (commDate) commDate.valueAsDate = new Date();
 
+      if (currentUser) {
+        document.getElementById('inpOwner').value = currentUser.name || '';
+        document.getElementById('inpDept').value = currentUser.dept || 'МТХА';
+        document.getElementById('inpRole').value = currentUser.roleTitle || ROLE_TITLES[currentUser.role] || '';
+      }
+
+      renderDeviceCategorySelectors();
+      autoGenerateJournalNo();
+      
+      document.getElementById('specInputTableBody').innerHTML = '';
+      document.getElementById('accInputTableBody').innerHTML = '';
+      addSpecInputRow();
+      addAccInputRow();
+
+      modal.classList.remove('hidden');
+    };
+
+    window.closeNewAssetModal = function() {
+      document.getElementById('newAssetModal').classList.add('hidden');
+    };
+
+    window.autoGenerateJournalNo = function() {
+      const commDate = document.getElementById('inpCommDate').value;
+      const cat = document.getElementById('inpCategory').value;
+      const year = commDate ? commDate.substring(0, 4) : "2026";
+      const sysCode = SYSTEM_CODES[cat] || "01";
+      const count = assets.filter(a => a.category === cat).length + 1;
+      const seq = String(count).padStart(3, '0');
+      document.getElementById('inpJournalNo').value = `${year}${sysCode}${seq}`;
+    };
+
+    window.checkDuplicateAssetCode = function() {
+      const val = document.getElementById('inpAssetCode').value.trim();
+      const warn = document.getElementById('assetCodeWarningBanner');
+      const details = document.getElementById('duplicateAssetDetails');
+      const statusMsg = document.getElementById('assetCodeStatusMsg');
+      const btnSave = document.getElementById('btnSaveNewAsset');
+
+      const found = assets.find(a => a.assetCode && a.assetCode.toLowerCase() === val.toLowerCase());
+      if (val && found) {
+        warn.classList.remove('hidden');
+        details.innerHTML = `Хөрөнгө: <b>${found.model}</b> (Журнал №: ${found.journalNo}, Систем: ${found.category})`;
+        statusMsg.innerText = "❌ Давхардсан код!";
+        statusMsg.className = "text-[10px] mt-1 block text-rose-600 font-bold";
+        btnSave.disabled = true;
+      } else {
+        warn.classList.add('hidden');
+        statusMsg.innerText = val ? "✔ Код боломжтой" : "";
+        statusMsg.className = "text-[10px] mt-1 block text-emerald-600 font-bold";
+        btnSave.disabled = false;
+      }
+    };
+
+    window.addSpecInputRow = function() {
+      const tbody = document.getElementById('specInputTableBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-center font-bold text-slate-400">${idx}</td>
+        <td class="p-1"><input type="text" placeholder="Үзүүлэлтийн нэр" class="w-full px-2 py-1 border border-slate-200 rounded text-xs spec-name"></td>
+        <td class="p-1"><input type="text" placeholder="Утга" class="w-full px-2 py-1 border border-slate-200 rounded text-xs spec-val"></td>
+        <td class="p-1"><input type="text" value="1" class="w-full px-2 py-1 border border-slate-200 rounded text-xs text-center spec-qty"></td>
+        <td class="p-1"><input type="text" value="ш" class="w-full px-2 py-1 border border-slate-200 rounded text-xs spec-unit"></td>
+        <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    window.addAccInputRow = function() {
+      const tbody = document.getElementById('accInputTableBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-center font-bold text-slate-400">${idx}</td>
+        <td class="p-1"><input type="text" placeholder="Иж бүрдлийн нэр" class="w-full px-2 py-1 border border-slate-200 rounded text-xs acc-name"></td>
+        <td class="p-1"><input type="text" placeholder="Үзүүлэлт / Төрөл" class="w-full px-2 py-1 border border-slate-200 rounded text-xs acc-val"></td>
+        <td class="p-1"><input type="text" value="1" class="w-full px-2 py-1 border border-slate-200 rounded text-xs text-center acc-qty"></td>
+        <td class="p-1"><input type="text" value="ш" class="w-full px-2 py-1 border border-slate-200 rounded text-xs acc-unit"></td>
+        <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    window.handleNewAssetSubmit = function(e) {
+      e.preventDefault();
+
+      const specs = [];
+      document.querySelectorAll('#specInputTableBody tr').forEach(tr => {
+        const name = tr.querySelector('.spec-name').value.trim();
+        const val = tr.querySelector('.spec-val').value.trim();
+        const qty = tr.querySelector('.spec-qty').value.trim();
+        const unit = tr.querySelector('.spec-unit').value.trim();
+        if (name) specs.push({ name, val, qty, unit });
+      });
+
+      const accessories = [];
+      document.querySelectorAll('#accInputTableBody tr').forEach(tr => {
+        const name = tr.querySelector('.acc-name').value.trim();
+        const val = tr.querySelector('.acc-val').value.trim();
+        const qty = tr.querySelector('.acc-qty').value.trim();
+        const unit = tr.querySelector('.acc-unit').value.trim();
+        if (name) accessories.push({ name, val, qty, unit });
+      });
+
+      const newAsset = {
+        journalNo: document.getElementById('inpJournalNo').value.trim(),
+        assetCode: document.getElementById('inpAssetCode').value.trim(),
+        category: document.getElementById('inpCategory').value,
+        deviceCategory: document.getElementById('inpDeviceCategory').value,
+        model: document.getElementById('inpModel').value.trim(),
+        status: document.getElementById('inpStatus').value,
+        statusDate: document.getElementById('inpCommDate').value,
+        location: document.getElementById('inpLocation').value.trim(),
+        owner: document.getElementById('inpOwner').value.trim(),
+        dept: document.getElementById('inpDept').value.trim(),
+        role: document.getElementById('inpRole').value.trim(),
+        commissionedDate: document.getElementById('inpCommDate').value,
+        lifespan: document.getElementById('inpLifespan').value.trim(),
+        interval: document.getElementById('inpInterval').value,
+        specs: specs,
+        accessories: accessories,
+        logs: []
+      };
+
+      assets.unshift(newAsset);
+      currentAssetNo = newAsset.journalNo;
+
+      saveDB();
+      initAssetSelector();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      generateReport();
+      closeNewAssetModal();
+      alert('Шинэ тоног төхөөрөмж амжилттай бүртгэгдлээ!');
+    };
+
+    // ================= ХЭРЭГЛЭГЧ НЭМЭХ ЛОГИК =================
+    window.renderUserList = function() {
+      const container = document.getElementById('userListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      users.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-3 hover:bg-slate-50 text-xs';
+        div.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-800">${u.name}</span> 
+            <span class="text-slate-400">(@${u.username})</span> - 
+            <span class="font-semibold text-blue-600">${ROLE_TITLES[u.role] || u.role}</span>
+            <div class="text-[11px] text-slate-500">${u.dept} | ${u.system}</div>
+          </div>
+          <div>
+            ${u.username !== 'admin' ? `<button onclick="deleteUser(${u.id})" class="p-1 text-slate-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    };
+
+    window.openUserMgmtModal = function() {
+      renderUserList();
+      document.getElementById('userMgmtModal').classList.remove('hidden');
+    };
+
+    window.deleteUser = function(userId) {
+      if (confirm('Энэ хэрэглэгчийг устгах уу?')) {
+        users = users.filter(u => u.id !== userId);
+        saveDB();
+        renderUserList();
+      }
+    };
+
+    window.handleAddUser = function(e) {
+      e.preventDefault();
+      const lastName = document.getElementById('newUserLastName').value.trim();
+      const firstName = document.getElementById('newUserFirstName').value.trim();
+      const username = document.getElementById('newUserUsername').value.trim();
+      const password = document.getElementById('newUserPassword').value.trim();
+      const dept = document.getElementById('newUserDept').value.trim();
+      const roleTitle = document.getElementById('newUserRoleTitle').value.trim();
+      const role = document.getElementById('newUserRole').value;
+      const system = document.getElementById('newUserSystem').value;
+
+      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert('Энэ нэвтрэх нэр бүртгэлтэй байна!');
+        return;
+      }
+
+      const newUser = {
+        id: Date.now(),
+        lastName,
+        firstName,
+        name: `${lastName.charAt(0)}.${firstName}`,
+        username,
+        password,
+        role,
+        system,
+        dept,
+        roleTitle
+      };
+
+      users.push(newUser);
+      saveDB();
+      renderUserList();
+      e.target.reset();
+      alert('Шинэ хэрэглэгч амжилттай бүртгэгдлээ!');
+    };
     // ================= ЭХЛҮҮЛЭХ =================
     window.addEventListener('DOMContentLoaded', () => {
       loadFromStorage();
