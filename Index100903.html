@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тоног төхөөрөмжийн техникийн цахим паспорт</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background-color: #fff; padding: 0; }
+      .shadow-sm, .shadow-md, .shadow-xl { box-shadow: none !important; }
+      #printableReportArea { display: block !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+  <!-- ================= 1. НЭВТРЭХ ДЭЛГЭЦ ================= -->
+  <div id="loginScreen" class="fixed inset-0 bg-slate-900 flex items-center justify-center p-4 z-[100] transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="text-center space-y-2">
+        <div class="inline-flex p-3 bg-blue-50 text-blue-600 rounded-2xl mb-1">
+          <i class="fa-solid fa-shield-halved text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">Цахим паспортын систем</h2>
+        <p class="text-xs text-slate-400">Нэвтрэхийн тулд хэрэглэгчийн нэр, нууц үгээ оруулна уу</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs">
+        <div id="loginError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl font-medium text-center">
+          Хэрэглэгчийн нэр эсвэл нууц үг буруу байна!
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Хэрэглэгчийн нэр</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <input type="text" id="loginUsername" required placeholder="жишээ нь: engineer" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Нууц үг</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold tracking-wide transition-colors shadow-md shadow-blue-500/20 text-xs cursor-pointer">
+          Нэвтрэх
+        </button>
+      </form>
+
+      <!-- Шууд нэвтрэх туршилт -->
+      <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-2">
+        <span class="font-bold text-slate-700 block text-[11px]">Шууд нэвтрэх туршилт:</span>
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <button type="button" onclick="quickLogin('admin')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-xl text-slate-700 font-semibold text-left transition-all flex items-center justify-between cursor-pointer shadow-sm active:scale-95">
+            <span>👑 Админ</span> <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+          </button>
+          <button type="button" onclick="quickLogin('ganzorig')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-xl text-slate-700 font-semibold text-left transition-all flex items-center justify-between cursor-pointer shadow-sm active:scale-95">
+            <span>✍️ Ахлах</span> <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+          </button>
+          <button type="button" onclick="quickLogin('auditor')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-xl text-slate-700 font-semibold text-left transition-all flex items-center justify-between cursor-pointer shadow-sm active:scale-95">
+            <span>🔍 Хяналт</span> <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+          </button>
+          <button type="button" onclick="quickLogin('engineer')" class="px-2.5 py-2 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-xl text-slate-700 font-semibold text-left transition-all flex items-center justify-between cursor-pointer shadow-sm active:scale-95">
+            <span>⚙️ Инженер</span> <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. ҮНДСЭН СИСТЕМИЙН ДЭЛГЭЦ ================= -->
+  <div id="mainApp" class="max-w-7xl mx-auto space-y-5 py-5 px-4 sm:px-6 lg:px-8 hidden">
+
+    <!-- ТОЛГОЙ БАР БА ЦАГ АГААР, ЦАГИЙН ВИДЖЕТ -->
+    <div class="bg-slate-900 text-white px-6 py-3 rounded-2xl flex flex-wrap justify-between items-center gap-3 shadow-md no-print">
+      
+      <!-- Зүүн: Хэрэглэгчийн мэдээлэл -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-xs text-slate-400">Нэвтэрсэн:</span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-emerald-400 border border-slate-700">
+          <i class="fa-solid fa-circle-user"></i> <span id="currentUserName">-</span> (<span id="currentUserRoleTitle">-</span>)
+        </span>
+        <span id="currentUserSystemBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-900/60 text-blue-300 border border-blue-700/50">
+          -
+        </span>
+      </div>
+
+      <!-- Төв: ЦАГ АГААР, ОН САР, ЦАГИЙН АМЬД ВИДЖЕТ -->
+      <div class="px-4 py-1.5 bg-slate-800/90 rounded-2xl border border-slate-700 flex items-center gap-3 text-xs shadow-inner">
+        <div class="flex items-center gap-1.5 text-amber-400 font-bold">
+          <i class="fa-solid fa-sun text-sm"></i>
+          <span>УБ: +6°C</span>
+        </div>
+        <span class="text-slate-600 font-bold">|</span>
+        <div class="flex items-center gap-1.5 text-blue-300 font-medium">
+          <i class="fa-regular fa-calendar-days text-slate-400"></i>
+          <span id="liveDateText">2026.10.09 (Баасан)</span>
+        </div>
+        <span class="text-slate-600 font-bold">|</span>
+        <div class="flex items-center gap-1.5 text-indigo-300 font-mono font-bold">
+          <i class="fa-regular fa-clock text-slate-400"></i>
+          <span id="liveClockText">--:--:--</span>
+        </div>
+      </div>
+
+      <!-- Баруун: Үйлдлийн товчнууд -->
+      <div class="flex items-center gap-2 relative">
+        <button onclick="openUserGuideModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/30 px-3 py-1.5 rounded-xl font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-book-open"></i> <span class="hidden sm:inline">Заавар</span>
+        </button>
+
+        <!-- МЭДЭГДЭЛ ХОНХ -->
+        <div class="relative">
+          <button onclick="toggleNotificationPanel()" class="relative p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs transition-colors border border-slate-700 cursor-pointer">
+            <i class="fa-solid fa-bell text-sm"></i>
+            <span id="notifBadge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 bg-red-600 text-white text-[10px] font-bold rounded-full animate-pulse">0</span>
+          </button>
+
+          <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-xs">
+            <div class="p-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <span class="font-bold text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-bell text-blue-600"></i> Мэдэгдлүүд</span>
+              <span id="notifCountText" class="text-[11px] text-slate-500 font-medium">0 шинэ</span>
+            </div>
+            <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></div>
+          </div>
+        </div>
+
+        <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-xl font-semibold transition-colors cursor-pointer">
+          <i class="fa-solid fa-users-gear mr-1"></i> Хэрэглэгчид
+        </button>
+        <button onclick="handleLogout()" class="text-xs bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl font-semibold transition-colors cursor-pointer">
+          <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Гарах
+        </button>
+      </div>
+    </div>
+
+    <!-- ТАБ ШИЛЖИХ ЦЭС -->
+    <div class="flex items-center gap-2 border-b border-slate-200 no-print pb-2">
+      <button id="tabBtnPassport" onclick="switchTab('passport')" class="px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20 cursor-pointer">
+        <i class="fa-regular fa-id-card"></i> Төхөөрөмжийн цахим паспорт
+      </button>
+      <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer">
+        <i class="fa-solid fa-chart-pie"></i> Хяналтын самбар & Тайлан
+      </button>
+    </div>
+
+    <!-- ТОЛГОЙ БЛОК: ХЭСЭГ, АНГИЛАЛ, ТӨХӨӨРӨМЖ ШҮҮЛТҮҮРҮҮД -->
+    <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <i class="fa-solid fa-server text-xl"></i>
+          </span>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Тоног төхөөрөмжийн цахим паспорт</h1>
+            <p class="text-xs text-slate-500">Батламж болон хяналт-шинжилгээ бүхий нэгдсэн хөтлөлт</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2.5 w-full md:w-auto">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600 whitespace-nowrap w-24">Хэсэг:</label>
+            <select id="sectionFilterSelector" onchange="onSectionFilterChange(this.value)" class="w-full md:w-80 bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold rounded-xl p-2 focus:ring-blue-500">
+              <option value="ALL">Бүх систем (Бүгд)</option>
+              <option value="Хяналт мэдээллийн систем">Хяналт мэдээллийн систем (01)</option>
+              <option value="Тоолуурын нэгдсэн систем">Тоолуурын нэгдсэн систем (02)</option>
+              <option value="Холбооны систем">Холбооны систем (03)</option>
+              <option value="Мэдээллийн систем">Мэдээллийн систем (04)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600 whitespace-nowrap w-24">Ангилал:</label>
+            <div class="flex items-center gap-1.5 w-full md:w-80">
+              <select id="deviceCategorySelector" onchange="onDeviceCatFilterChange(this.value)" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold rounded-xl p-2 focus:ring-blue-500">
+                <option value="ALL">Бүх ангилал (Бүгд)</option>
+              </select>
+              <button id="btnManageDevCategories" onclick="openDevCategoryModal()" class="hidden p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs transition cursor-pointer" title="Ангилал удирдах">
+                <i class="fa-solid fa-gear"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600 whitespace-nowrap w-24">Төхөөрөмж:</label>
+            <select id="assetSelector" onchange="onSelectAsset(this.value)" class="w-full md:w-80 bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold rounded-xl p-2 focus:ring-blue-500"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 no-print pt-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <div id="excelActions" class="hidden flex items-center gap-2">
+            <button onclick="downloadExcelTemplate()" class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer">
+              <i class="fa-solid fa-file-excel"></i> Excel загвар татах
+            </button>
+            <label class="cursor-pointer inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-semibold">
+              <i class="fa-solid fa-file-import"></i> Excel-ээс импортлох
+              <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="window.print()" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer">
+            <i class="fa-solid fa-print"></i> Хэвлэх / PDF
+          </button>
+          <button id="btnNewAsset" onclick="openNewAssetModal()" class="hidden inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm cursor-pointer">
+            <i class="fa-solid fa-plus"></i> Төхөөрөмж нэмэх
+          </button>
+          <button id="btnNewInspection" onclick="openInspectionModal()" class="hidden inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm cursor-pointer">
+            <i class="fa-solid fa-wrench"></i> Үзлэг бүртгэх
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= ТАБ 1: ЦАХИМ ПАСПОРТЫН ДЭЛГЭЦ ================= -->
+    <div id="tabContentPassport" class="space-y-6">
+
+      <!-- I. ТОНОГ ТӨХӨӨРӨМЖИЙН ЗОРИУЛАЛТ -->
+      <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-regular fa-id-card text-blue-600 text-base"></i> I. Тоног төхөөрөмжийн зориулалт
+            </h2>
+            <div class="flex flex-wrap items-center gap-2 mt-2 text-xs font-medium text-slate-600">
+              <span class="inline-flex items-center gap-1 font-semibold text-slate-700">
+                Хэсэг: <span id="dispCategoryBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 ml-1">-</span>
+              </span>
+              <span class="text-slate-300 font-bold">|</span>
+              <span class="inline-flex items-center gap-1 font-semibold text-slate-700">
+                Ангилал: <span id="dispDeviceCatBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 ml-1">-</span>
+              </span>
+              <span class="text-slate-300 font-bold">|</span>
+              <span class="inline-flex items-center gap-1 font-semibold text-slate-700">
+                Төлөв: <span id="dispStatusBadge" class="ml-1 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold">-</span>
+              </span>
+            </div>
+          </div>
+          <div class="text-left sm:text-right bg-blue-50/70 border border-blue-100 px-4 py-2 rounded-2xl">
+            <span class="text-slate-400 block text-[11px] font-semibold">Журналын №</span>
+            <span class="font-black text-blue-700 text-lg font-mono tracking-tight" id="dispJournalNo">-</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Марк, тип</span>
+              <span class="font-bold text-slate-900 truncate block text-xs" id="dispModel">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-barcode"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Хөрөнгийн код</span>
+              <span class="font-bold text-indigo-700 font-mono truncate block text-xs" id="dispAssetCode">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Байршил</span>
+              <span class="font-bold text-slate-900 truncate block text-xs" id="dispLocation">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Эзэмшигч</span>
+              <span class="font-bold text-slate-900 truncate block text-xs" id="dispOwner">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Алба</span>
+              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispDept">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-id-badge"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Албан тушаал</span>
+              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispRole">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Ашиглалтад орсон</span>
+              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispCommissionedDate">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-teal-100/70 rounded-xl border border-teal-200">
+            <div class="w-8 h-8 rounded-lg bg-teal-200 text-teal-700 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-500 block text-[10px] uppercase font-bold">Эдлэгдэх хугацаа</span>
+              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispLifespan">-</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-blue-100/70 rounded-xl border border-blue-200">
+            <div class="w-8 h-8 rounded-lg bg-blue-200 text-blue-700 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-repeat"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-slate-500 block text-[10px] uppercase font-bold">Үзлэгийн давтамж</span>
+              <span class="font-semibold text-blue-700 truncate block text-xs" id="dispInterval">Улиралд 1 удаа</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 p-3 bg-amber-50/60 rounded-xl border border-amber-200/60 sm:col-span-2 lg:col-span-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm flex-shrink-0">
+              <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-amber-800 block text-[10px] uppercase font-bold">Дараагийн үзлэг хийх хугацаа</span>
+              <span class="font-bold text-amber-700 text-xs block" id="dispNextInspection">-</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- II & III ТЕХНИКИЙН ҮЗҮҮЛЭЛТ БА ИЖ БҮРДЭЛ -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-microchip text-blue-600"></i> II. Техникийн үндсэн үзүүлэлтүүд
+            </h2>
+            <span class="text-[11px] text-slate-400 font-medium">Дэлгэрэнгүй үзүүлэлт</span>
+          </div>
+          <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-400 uppercase font-semibold">
+                <tr>
+                  <th class="px-3 py-2.5 w-10 text-center">д/д</th>
+                  <th class="px-3 py-2.5">Үзүүлэлтийн нэр</th>
+                  <th class="px-3 py-2.5">Тоон утга / Үзүүлэлт</th>
+                  <th class="px-3 py-2.5 text-center w-16">Тоо</th>
+                  <th class="px-3 py-2.5 w-16">Нэгж</th>
+                </tr>
+              </thead>
+              <tbody id="specsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+          <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-boxes-stacked text-blue-600"></i> III. Иж бүрдэл
+            </h2>
+            <span class="text-[11px] text-slate-400 font-medium">Дагалдах</span>
+          </div>
+          <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-400 uppercase font-semibold">
+                <tr>
+                  <th class="px-2.5 py-2.5 w-8 text-center">д/д</th>
+                  <th class="px-2.5 py-2.5">Иж бүрдэл</th>
+                  <th class="px-2 py-2.5 text-center w-12">Тоо</th>
+                  <th class="px-2 py-2.5 w-10">Нэгж</th>
+                </tr>
+              </thead>
+              <tbody id="accessoriesTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- IV. ҮЗЛЭГ, ЗАСВАР ҮЙЛЧИЛГЭЭНИЙ ТҮҮХ -->
+      <section id="maintenanceSection" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-clipboard-check text-blue-600"></i> IV. Үзлэг, засвар үйлчилгээ ба батламж
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Үзлэг бүртгэх, засах, устгах болон олон шатлалт баталгаажуулалт</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/80 text-slate-400 uppercase font-semibold">
+              <tr>
+                <th class="px-3 py-3 w-8 text-center">№</th>
+                <th class="px-3 py-3">Огноо</th>
+                <th class="px-3 py-3">Хийсэн ажил / Үзлэг</th>
+                <th class="px-3 py-3">Илэрсэн эвдрэл</th>
+                <th class="px-3 py-3">Сольсон сэлбэг</th>
+                <th class="px-3 py-3">Шинэ төлөв</th>
+                <th class="px-3 py-3">Гүйцэтгэсэн</th>
+                <th class="px-3 py-3">Батламж</th>
+                <th class="px-3 py-3">Ахлахын батламж</th>
+                <th class="px-3 py-3">Хяналтын дүгнэлт</th>
+                <th class="px-3 py-3 text-center no-print">Үйлдэл</th>
+              </tr>
+            </thead>
+            <tbody id="maintenanceTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ================= ТАБ 2: ХЯНАЛТЫН САМБАР & ТАЙЛАНГИЙН ХЭСЭГ ================= -->
+    <div id="tabContentDashboard" class="space-y-6 hidden">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-slate-400 text-xs font-semibold block mb-1">Нийт бүртгэлтэй хөрөнгө</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-black text-slate-900" id="kpiTotalAssets">0</span>
+            <span class="p-2 bg-blue-50 text-blue-600 rounded-xl text-xs"><i class="fa-solid fa-server"></i></span>
+          </div>
+          <span class="text-[11px] text-slate-400 mt-2 block" id="kpiSystemCount">4 системд</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-slate-400 text-xs font-semibold block mb-1">Хэвийн ажиллагаатай</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-black text-emerald-600" id="kpiNormalAssets">0</span>
+            <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs"><i class="fa-solid fa-circle-check"></i></span>
+          </div>
+          <span class="text-[11px] text-emerald-700 font-medium mt-2 block" id="kpiNormalPct">0%</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-slate-400 text-xs font-semibold block mb-1">Гэмтэлтэй / Засварт байгаа</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-black text-rose-600" id="kpiIssueAssets">0</span>
+            <span class="p-2 bg-rose-50 text-rose-600 rounded-xl text-xs"><i class="fa-solid fa-triangle-exclamation"></i></span>
+          </div>
+          <span class="text-[11px] text-rose-700 font-medium mt-2 block" id="kpiIssuePct">0%</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-slate-400 text-xs font-semibold block mb-1">Үзлэг хэтэрсэн / Ойртсон</span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl font-black text-amber-600" id="kpiOverdueInspection">0</span>
+            <span class="p-2 bg-amber-50 text-amber-600 rounded-xl text-xs"><i class="fa-solid fa-clock-rotate-left"></i></span>
+          </div>
+          <span class="text-[11px] text-amber-700 font-medium mt-2 block" id="kpiPendingApproval">0 батлах дутуу</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-chart-column text-blue-600"></i> Систем тус бүрээрх төхөөрөмжийн харьцаа
+        </h3>
+        <div id="systemDistributionBars" class="space-y-3 text-xs"></div>
+      </div>
+
+      <!-- ТАЙЛАНГИЙН УДИРДЛАГА -->
+      <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5 no-print">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-file-invoice text-indigo-600"></i> Тайлан үүсгэх ба хэвлэх
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Тайлангийн төрлийг сонгож, шууд үзэх болон PDF-ээр хэвлэх</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div class="md:col-span-2 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Тайлангийн төрөл сонгох:</label>
+            <select id="reportTypeSelector" onchange="onReportTypeChange(this.value)" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500">
+              <option value="FULL">1. Нэгдсэн тайлан (Бүх хэсэг, үзлэг, сэлбэг дэлгэрэнгүй)</option>
+              <option value="LAST_30">2. Сүүлийн 1 сард үзлэг хийгдсэн бүх төхөөрөмжийн тайлан</option>
+              <option value="LAST_7">3. Сүүлийн 7 хоногт үзлэг хийгдсэн бүх төхөөрөмжийн тайлан</option>
+              <option value="SELECTED_ASSETS">4. Сонгосон төхөөрөмжүүдийн тайлан (Check-лэсэн)</option>
+              <option value="BY_SECTION">5. Сонгосон хэсгийн (системийн) тайлан</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="generateReport()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-magnifying-glass"></i> Тайлан харах
+            </button>
+            <button onclick="printReportDirectly()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+              <i class="fa-solid fa-print"></i> Хэвлэх / PDF
+            </button>
+          </div>
+        </div>
+
+        <div id="filterSectionBlock" class="hidden p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <label class="block text-xs font-bold text-slate-700">Тайлан гаргах хэсгийг сонгоно уу:</label>
+          <select id="reportSectionTarget" class="w-full bg-white border border-slate-200 text-xs font-semibold rounded-lg p-2">
+            <option value="Хяналт мэдээллийн систем">Хяналт мэдээллийн систем (01)</option>
+            <option value="Тоолуурын нэгдсэн систем">Тоолуурын нэгдсэн систем (02)</option>
+            <option value="Холбооны систем">Холбооны систем (03)</option>
+            <option value="Мэдээллийн систем">Мэдээллийн систем (04)</option>
+          </select>
+        </div>
+
+        <div id="filterAssetCheckboxBlock" class="hidden p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+            <span class="text-xs font-bold text-slate-800">Тайланд оруулах төхөөрөмжүүдээ чеклэнэ үү:</span>
+            <label class="text-[11px] text-blue-600 font-bold cursor-pointer flex items-center gap-1">
+              <input type="checkbox" id="chkSelectAllAssets" onchange="toggleSelectAllAssets(this.checked)" class="rounded"> Бүгдийг сонгох
+            </label>
+          </div>
+          <div id="assetCheckboxList" class="max-h-48 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs"></div>
+        </div>
+      </section>
+
+      <!-- ХЭВЛЭХЭД БЭЛЭН ТАЙЛАН -->
+      <section id="printableReportArea" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+        <div class="border-b-2 border-slate-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+          <div>
+            <span class="text-xs font-bold tracking-widest text-slate-500 uppercase block mb-1">Мэдээлэл холбоо, автоматжуулалтын хэлтэс</span>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" id="reportHeaderTitle">ТОНОГ ТӨХӨӨРӨМЖИЙН НЭГДСЭН ТАЙЛАН</h1>
+            <p class="text-xs text-slate-500 mt-1" id="reportHeaderSubtitle">Бүх систем, төхөөрөмжийн ажиллагаа ба үзлэгийн түүх</p>
+          </div>
+          <div class="text-left sm:text-right text-xs space-y-0.5">
+            <div class="text-slate-500">Тайлан гаргасан хугацаа:</div>
+            <div class="font-bold text-slate-900 font-mono text-sm" id="reportTimestamp">-</div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-slate-200 divide-y divide-slate-200" id="reportGeneratedTable">
+            <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px]">
+              <tr>
+                <th class="p-2.5 w-8 text-center border-r border-slate-200">№</th>
+                <th class="p-2.5 border-r border-slate-200">Журнал №</th>
+                <th class="p-2.5 border-r border-slate-200">Хөрөнгийн код</th>
+                <th class="p-2.5 border-r border-slate-200">Марк, тип</th>
+                <th class="p-2.5 border-r border-slate-200">Хамаарах систем</th>
+                <th class="p-2.5 border-r border-slate-200">Байршил / Эзэмшигч</th>
+                <th class="p-2.5 border-r border-slate-200">Төлөв</th>
+                <th class="p-2.5 border-r border-slate-200">Сүүлийн үзлэг</th>
+                <th class="p-2.5">Хийсэн ажил / Илэрсэн эвдрэл / Сэлбэг</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody" class="divide-y divide-slate-100 text-slate-800"></tbody>
+          </table>
+        </div>
+
+        <div class="pt-8 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs">
+          <div class="space-y-4">
+            <div class="font-bold text-slate-800">Тайлан гаргасан:</div>
+            <div class="space-y-1.5 text-slate-600">
+              <div>Албан тушаал: <span class="font-semibold text-slate-900" id="signReporterRole">-</span></div>
+              <div>Овог, нэр: <span class="font-semibold text-slate-900" id="signReporterName">-</span></div>
+              <div class="pt-4 flex items-center gap-2">
+                <span>Гарын үсэг:</span>
+                <div class="border-b border-dashed border-slate-400 w-44"></div>
+              </div>
+              <div class="text-[11px] text-slate-400 pt-1">Огноо: 2026 он ___ сар ___ өдөр</div>
+            </div>
+          </div>
+
+          <div class="space-y-4 sm:pl-8">
+            <div class="font-bold text-slate-800">Танилцсан / Баталгаажуулсан:</div>
+            <div class="space-y-1.5 text-slate-600">
+              <div>Албан тушаал: <span class="font-semibold text-slate-900" id="signAuditorRole">Ахлах ажилтан / Хяналтын ажилтан</span></div>
+              <div>Овог, нэр: <span class="font-semibold text-slate-900" id="signAuditorName">...................................................</span></div>
+              <div class="pt-4 flex items-center gap-2">
+                <span>Гарын үсэг:</span>
+                <div class="border-b border-dashed border-slate-400 w-44"></div>
+              </div>
+              <div class="text-[11px] text-slate-400 pt-1">Огноо: 2026 он ___ сар ___ өдөр</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <!-- ================= 3. ҮЗЛЭГ БҮРТГЭХ & ЗАСАХ МОДАЛ ================= -->
+  <div id="inspectionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-900" id="inspectionModalTitle">Үзлэг, засвар үйлчилгээ бүртгэх</h3>
+        <button onclick="closeInspectionModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="inspectionForm" onsubmit="handleInspectionSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="editInspectionLogId" value="">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Огноо *</label>
+            <input type="date" id="inspDate" required class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Гүйцэтгэсэн инженер *</label>
+            <input type="text" id="inspTech" readonly required class="w-full px-3 py-2 bg-slate-100 font-semibold border border-slate-200 rounded-xl">
+          </div>
+        </div>
+
+        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200/60">
+          <label class="block font-bold text-blue-900 mb-1">Үзлэгийн дараах ажиллагааны төлөв *</label>
+          <select id="inspStatus" required class="w-full px-3 py-2 bg-white border border-blue-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-blue-500">
+            <option value="Хэвийн ажиллагаатай">🟢 Хэвийн ажиллагаатай</option>
+            <option value="Гэмтсэн">🔴 Гэмтсэн</option>
+            <option value="Засварт байгаа">🟡 Засварт байгаа</option>
+            <option value="Актлагдсан">⚪ Актлагдсан</option>
+          </select>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+          <span class="block font-bold text-slate-800">Хийгдсэн ажлууд (Сонгох):</span>
+          <div class="space-y-2 text-slate-700">
+            <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
+              <input type="checkbox" id="chkTask1" class="rounded text-blue-600 focus:ring-blue-500"> 
+              <span>Үзлэг, үйлчилгээ хийв.</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
+              <input type="checkbox" id="chkTask2" class="rounded text-blue-600 focus:ring-blue-500"> 
+              <span>Тоног төхөөрөмж сольж суурилуулсан.</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
+              <input type="checkbox" id="chkTask3" class="rounded text-blue-600 focus:ring-blue-500"> 
+              <span>Үл тохирол арилгасан.</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
+              <input type="checkbox" id="chkTask4" class="rounded text-blue-600 focus:ring-blue-500"> 
+              <span>Панелиудын бохирдлыг цэвэрлэж, тоосыг соруулав.</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer hover:text-blue-600">
+              <input type="checkbox" id="chkTask5" class="rounded text-blue-600 focus:ring-blue-500"> 
+              <span>Төхөөрөмжийн тохиргооны файлыг хуулж авч, архивлав.</span>
+            </label>
+          </div>
+          <div class="pt-1.5">
+            <input type="text" id="inspActionCustom" placeholder="Нэмэлт хийгдсэн ажил байвал бичнэ үү..." class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+          </div>
+        </div>
+
+        <!-- ИЛЭРСЭН ЭВДРЭЛ ГЭМТЭЛ (ШААРДСАН ШИНЭ ХЭСЭГ) -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+          <label class="block font-bold text-slate-800">Илэрсэн эвдрэл гэмтэл *</label>
+          <select id="inspIssueType" onchange="toggleIssueDescription(this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-semibold text-slate-800">
+            <option value="Хэвийн" selected>Хэвийн (Гэмтэлгүй)</option>
+            <option value="Гэмтэлтэй">Гэмтэлтэй</option>
+          </select>
+
+          <!-- ГЭМТЭЛТЭЙ СОНГОХОД ГАРЧ ИРЭХ ОГНОО БА ТАЙЛБАРЫН БЛОК -->
+          <div id="issueDescBlock" class="hidden space-y-3 pt-1">
+            <div class="bg-rose-50/80 p-3 rounded-xl border border-rose-200 space-y-2.5">
+              <div>
+                <label class="block font-bold text-rose-800 mb-1">Гэмтэл гарсан огноо *</label>
+                <input type="date" id="inspIssueDate" class="w-full px-3 py-2 border border-rose-300 rounded-xl bg-white focus:ring-2 focus:ring-rose-400">
+              </div>
+              <div>
+                <label class="block font-bold text-rose-800 mb-1">Гэмтлийн дэлгэрэнгүй тайлбар *</label>
+                <textarea id="inspIssueDesc" rows="2" placeholder="Илэрсэн эвдрэл, гэмтлийн шинж тэмдэг, шалтгааныг тодорхой бичнэ үү..." class="w-full px-3 py-2 border border-rose-300 rounded-xl bg-white focus:ring-2 focus:ring-rose-400"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="block font-bold text-slate-800">Сольсон сэлбэг хэрэгсэл:</span>
+            <button type="button" onclick="addPartRow()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-plus"></i> Сэлбэг нэмэх
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-500 font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-1.5 w-10 text-center">д/д</th>
+                  <th class="py-1.5 px-1 w-1/2">Сэлбэгийн нэр</th>
+                  <th class="py-1.5 px-1 w-24">Хэмжих нэгж</th>
+                  <th class="py-1.5 px-1 w-20 text-center">Тоо</th>
+                  <th class="py-1.5 w-8 text-center"></th>
+                </tr>
+              </thead>
+              <tbody id="partsInputTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeInspectionModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-semibold cursor-pointer">Болих</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold cursor-pointer">Бүртгэх</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- МОДАЛ: ШИНЭ ТӨХӨӨРӨМЖ БҮРТГЭХ -->
+  <div id="newAssetModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-900">Шинэ тоног төхөөрөмж бүртгэх</h3>
+        <button onclick="closeNewAssetModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="newAssetForm" onsubmit="handleNewAssetSubmit(event)" class="space-y-4 text-xs">
+        <div id="assetCodeWarningBanner" class="hidden p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1 text-rose-800">
+          <div class="font-bold flex items-center gap-1.5 text-rose-700">
+            <i class="fa-solid fa-triangle-exclamation"></i> Хөрөнгийн код давхардаж байна!
+          </div>
+          <div id="duplicateAssetDetails" class="text-[11px] leading-relaxed text-slate-700 bg-white p-2.5 rounded-lg border border-rose-100"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ашиглалтад орсон огноо *</label>
+            <input type="date" id="inpCommDate" onchange="autoGenerateJournalNo()" required class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Хамаарах систем (Хэсэг) *</label>
+            <select id="inpCategory" onchange="autoGenerateJournalNo()" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 bg-white">
+              <option value="Хяналт мэдээллийн систем">Хяналт мэдээллийн систем (01)</option>
+              <option value="Тоолуурын нэгдсэн систем">Тоолуурын нэгдсэн систем (02)</option>
+              <option value="Холбооны систем">Холбооны систем (03)</option>
+              <option value="Мэдээллийн систем">Мэдээллийн систем (04)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Төхөөрөмжийн ангилал *</label>
+            <select id="inpDeviceCategory" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 bg-white"></select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Журналын № (Автомат) *</label>
+            <input type="text" id="inpJournalNo" readonly required class="w-full px-3 py-2 bg-slate-100 font-bold text-blue-700 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Хөрөнгийн код *</label>
+            <input type="text" id="inpAssetCode" placeholder="Жишээ: FA-2026-0045" oninput="checkDuplicateAssetCode()" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono">
+            <span id="assetCodeStatusMsg" class="text-[10px] mt-1 block"></span>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Марк, тип *</label>
+            <input type="text" id="inpModel" placeholder="Dell OptiPlex" required class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ажиллагааны анхны төлөв *</label>
+            <select id="inpStatus" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold">
+              <option value="Хэвийн ажиллагаатай" selected>🟢 Хэвийн ажиллагаатай</option>
+              <option value="Гэмтсэн">🔴 Гэмтсэн</option>
+              <option value="Засварт байгаа">🟡 Засварт байгаа</option>
+              <option value="Актлагдсан">⚪ Актлагдсан</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Байршил *</label>
+            <input type="text" id="inpLocation" placeholder="ДҮТ-102" required class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Эзэмшигч *</label>
+            <input type="text" id="inpOwner" readonly required class="w-full px-3 py-2 bg-slate-100 font-semibold border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Алба</label>
+            <input type="text" id="inpDept" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Албан тушаал</label>
+            <input type="text" id="inpRole" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Эдлэгдэх хугацаа</label>
+            <input type="text" id="inpLifespan" value="8 жил" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">Үзлэг хийх давтамж *</label>
+            <select id="inpInterval" required class="w-full px-3 py-2 border border-slate-200 rounded-xl font-medium">
+              <option value="өдөр бүр">өдөр бүр</option>
+              <option value="сард 2 удаа">сард 2 удаа</option>
+              <option value="сар бүр">сар бүр</option>
+              <option value="улиралд нэг удаа" selected>улиралд нэг удаа</option>
+              <option value="жилд 2 удаа">жилд 2 удаа</option>
+              <option value="жил бүр">жил бүр</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-microchip text-blue-600"></i> Техникийн үзүүлэлтүүд
+            </span>
+            <button type="button" onclick="addSpecInputRow()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-plus"></i> Үзүүлэлт нэмэх
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-500 font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-1.5 w-10 text-center">д/д</th>
+                  <th class="py-1.5 px-1 w-1/3">Нэр</th>
+                  <th class="py-1.5 px-1 w-1/3">Үзүүлэлт</th>
+                  <th class="py-1.5 px-1 w-16 text-center">Тоо</th>
+                  <th class="py-1.5 px-1 w-20">Хэмжих нэгж</th>
+                  <th class="py-1.5 w-8 text-center"></th>
+                </tr>
+              </thead>
+              <tbody id="specInputTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-boxes-stacked text-blue-600"></i> Иж бүрдэл
+            </span>
+            <button type="button" onclick="addAccInputRow()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-plus"></i> Иж бүрдэл нэмэх
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-500 font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-1.5 w-10 text-center">д/д</th>
+                  <th class="py-1.5 px-1 w-1/3">Нэр</th>
+                  <th class="py-1.5 px-1 w-1/3">Үзүүлэлт</th>
+                  <th class="py-1.5 px-1 w-16 text-center">Тоо</th>
+                  <th class="py-1.5 px-1 w-20">Хэмжих нэгж</th>
+                  <th class="py-1.5 w-8 text-center"></th>
+                </tr>
+              </thead>
+              <tbody id="accInputTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeNewAssetModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-semibold cursor-pointer">Болих</button>
+          <button type="submit" id="btnSaveNewAsset" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold cursor-pointer">Хадгалах</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- МОДАЛ: АУДИТ ТАЙЛБАР -->
+  <div id="auditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-900" id="auditModalTitle">Хяналтын дүгнэлт / Тайлбар</h3>
+        <button onclick="closeAuditModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleAuditSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="auditLogId">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Хяналтын ажилтны тайлбар, зөвлөмж:</label>
+          <textarea id="auditComment" rows="3" placeholder="Шаардлагатай бол тайлбар, зөвлөмжөө энд бичнэ үү..." class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeAuditModal()" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-semibold cursor-pointer">Болих</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold cursor-pointer">Хадгалах</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- МОДАЛ: АНГИЛАЛ УДИРДАХ -->
+  <div id="deviceCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-layer-group text-blue-600"></i> Төхөөрөмжийн ангилал удирдах
+        </h3>
+        <button onclick="closeDevCategoryModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700">Одоо байгаа ангиллууд:</label>
+        <div id="devCategoryListContainer" class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto"></div>
+      </div>
+
+      <form onsubmit="handleAddDevCategory(event)" class="space-y-2 pt-2 border-t border-slate-100">
+        <label class="block text-xs font-bold text-slate-700">+ Шинэ ангилал нэмэх:</label>
+        <div class="flex gap-2">
+          <input type="text" id="newDevCategoryInput" placeholder="жишээ: Тоолуур хэмжих хэрэгсэл" required class="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500">
+          <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl cursor-pointer">Нэмэх</button>
+        </div>
+      </form>
+
+      <div class="text-right pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeDevCategoryModal()" class="px-4 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold cursor-pointer">Хаах</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛ: EXCEL ИМПОРТЫН АЛДАА ХАРУУЛАХ ЦОНХ -->
+  <div id="excelErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5 text-rose-600">
+          <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Excel импортын шалгалтын алдаа</h3>
+            <p class="text-xs text-slate-500">Алдаатай мөрүүдийг оруулаагүй ба зөв өгөгдлүүд амжилттай нэмэгдсэн</p>
+          </div>
+        </div>
+        <button onclick="closeExcelErrorModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
+        Дараах мөрүүдэд өгөгдлийн давхардал эсвэл дутуу талбар илэрсэн тул алгаслаа. Та Excel файлаа шалгаад дахин оролдоно уу:
+      </div>
+
+      <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden max-h-60 overflow-y-auto" id="excelErrorList"></div>
+
+      <div class="text-right pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeExcelErrorModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold cursor-pointer">Ойлголоо, хаах</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛ: ЗААВАРЧИЛГАА -->
+  <div id="userGuideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-book-open text-blue-600"></i> Системийн хэрэглэх зааварчилгаа
+          </h3>
+          <p class="text-xs text-slate-500">Үүрэг хариуцлага ба үндсэн үйлдлүүд</p>
+        </div>
+        <button onclick="closeUserGuideModal()" class="text-slate-400 hover:text-slate-600 text-lg p-2 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs leading-relaxed text-slate-700">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <strong class="text-blue-700 block mb-1">👑 Админ (admin):</strong>
+            Бүх системийн төхөөрөмжүүдийг бүрэн удирдах, ангилал нэмэх/хасах, хэрэглэгч бүртгэх эрхтэй.
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <strong class="text-emerald-700 block mb-1">✍️ Ахлах ажилтан (lead):</strong>
+            Инженерүүдийн оруулсан үзлэгийг шалгаж "Батлах" эсвэл буцаах эрхтэй.
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <strong class="text-purple-700 block mb-1">🔍 Хяналтын ажилтан (auditor):</strong>
+            Ахлахын баталсан үзлэгүүдэд аудит хийж, дүгнэлт бичих, танилцах эрхтэй.
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <strong class="text-amber-700 block mb-1">⚙️ Инженер (technician):</strong>
+            Хариуцсан системдээ шинэ төхөөрөмж, үзлэг засварын ажлуудаа хөтлөх эрхтэй.
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100 space-y-1">
+          <strong class="text-blue-900 block">Төхөөрөмжийн ангилал:</strong>
+          <p>Толгой хэсгийн "Ангилал" шүүлтүүрээр Сервер, Компьютер, Сүлжээ, Тэжээл, Кабель зэргээр төрөлжүүлэн хайж шүүнэ. Админ хэрэглэгч араа дүрс бүхий товч дээр даран ангиллуудыг нэмж хасна.</p>
+        </div>
+      </div>
+
+      <div class="text-right pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeUserGuideModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold cursor-pointer">Ойлголоо, хаах</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛ: АДМИН ХЭРЭГЛЭГЧИД -->
+  <div id="userMgmtModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-900"><i class="fa-solid fa-users-gear text-amber-500 mr-2"></i>Хэрэглэгч ба хандалтын эрхийн удирдлага</h3>
+        <button onclick="closeUserMgmtModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-slate-700">Одоо бүртгэлтэй ажилтнууд:</h4>
+        <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden" id="userListContainer"></div>
+      </div>
+
+      <form onsubmit="handleAddUser(event)" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+        <span class="block font-bold text-slate-800">+ Шинэ хэрэглэгч нэмэх</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <input type="text" id="newUserLastName" placeholder="Овог" required class="px-3 py-2 border border-slate-200 rounded-lg">
+          <input type="text" id="newUserFirstName" placeholder="Нэр" required class="px-3 py-2 border border-slate-200 rounded-lg">
+          <input type="text" id="newUserDept" placeholder="Алба (жишээ: МТХА)" required class="px-3 py-2 border border-slate-200 rounded-lg">
+          <input type="text" id="newUserRoleTitle" placeholder="Албан тушаал" required class="px-3 py-2 border border-slate-200 rounded-lg">
+          <input type="text" id="newUserUsername" placeholder="Нэвтрэх нэр" required class="px-3 py-2 border border-slate-200 rounded-lg">
+          <input type="password" id="newUserPassword" placeholder="Нууц үг" required class="px-3 py-2 border border-slate-200 rounded-lg">
+          <select id="newUserRole" class="px-3 py-2 border border-slate-200 rounded-lg font-semibold sm:col-span-2">
+            <option value="technician">Инженер</option>
+            <option value="viewer">Харах эрх</option>
+            <option value="lead">Ахлах ажилтан</option>
+            <option value="auditor">Хяналтын ажилтан</option>
+            <option value="admin">Админ</option>
+          </select>
+        </div>
+
+        <div id="systemSelectBlock" class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
+          <label class="block font-bold text-slate-700">Хариуцах систем:</label>
+          <select id="newUserSystem" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium">
+            <option value="Хяналт мэдээллийн систем">Хяналт мэдээллийн систем (01)</option>
+            <option value="Тоолуурын нэгдсэн систем">Тоолуурын нэгдсэн систем (02)</option>
+            <option value="Холбооны систем">Холбооны систем (03)</option>
+            <option value="Мэдээллийн систем">Мэдээллийн систем (04)</option>
+          </select>
+        </div>
+
+        <div class="text-right">
+          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold cursor-pointer">Хэрэглэгч нэмэх</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT ҮНДСЭН КОД ================= -->
+  <script>
+    const ROLE_TITLES = {
+      admin: 'Админ',
+      lead: 'Ахлах ажилтан (Батлах)',
+      auditor: 'Хяналтын ажилтан',
+      technician: 'Инженер',
+      viewer: 'Харах эрх'
+    };
+
+    const SYSTEM_CODES = {
+      "Хяналт мэдээллийн систем": "01",
+      "Тоолуурын нэгдсэн систем": "02",
+      "Холбооны систем": "03",
+      "Мэдээллийн систем": "04"
+    };
+
+    const DEFAULT_DEVICE_CATEGORIES = [
+      "Сервер болон компьютер",
+      "Сүлжээний тоног төхөөрөмж",
+      "Тэжээлийн тоног төхөөрөмж",
+      "Кабель",
+      "Бусад"
+    ];
+
+    const MASTER_USERS = [
+      { id: 1, lastName: 'Бат', firstName: 'Админ', name: 'Б.Админ', username: 'admin', password: 'admin123', role: 'admin', system: 'Бүх систем', dept: 'МТХА', roleTitle: 'Системийн админ' },
+      { id: 2, lastName: 'Цэнгэл', firstName: 'Ганзориг', name: 'Ц.Ганзориг', username: 'ganzorig', password: 'ganzo123', role: 'lead', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын системийн инженер' },
+      { id: 3, lastName: 'Даш', firstName: 'Хяналт', name: 'Д.Хяналт', username: 'auditor', password: 'audit123', role: 'auditor', system: 'Бүх систем', dept: 'Хяналт үнэлгээний алба', roleTitle: 'Хяналтын ажилтан' },
+      { id: 4, lastName: 'Алтангэрэл', firstName: 'Инженер', name: 'А.Инженер', username: 'engineer', password: 'eng123', role: 'technician', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын инженер' }
+    ];
+
+    let users = MASTER_USERS;
+    let currentUser = null;
+    let deviceCategories = DEFAULT_DEVICE_CATEGORIES;
+
+    const INITIAL_ASSETS = [
+      {
+        journalNo: "201402001",
+        assetCode: "FA-2014-0012",
+        category: "Тоолуурын нэгдсэн систем",
+        deviceCategory: "Сервер болон компьютер",
+        model: "Ажлын компьютер / Fujitsu Celsius M470",
+        location: "ДҮТ-Админы өрөө",
+        owner: "Ц.Ганзориг",
+        dept: "МТХА",
+        role: "Тоолуурын системийн инженер",
+        commissionedDate: "2014-01-27",
+        lifespan: "8 жил",
+        interval: "улиралд нэг удаа",
+        status: "Хэвийн ажиллагаатай",
+        statusDate: "2014-01-27",
+        specs: [
+          { name: "Main Processor", val: "Intel Xeon 2*E5-650v2", qty: "1", unit: "ш" },
+          { name: "Хурд CPU", val: "2.60GHz, 8C", qty: "1", unit: "ш" },
+          { name: "Багтаамж HDD", val: "1.2TB 10K RPM SAS 6Gbps 2.5in", qty: "1", unit: "ш" },
+          { name: "Шуурхай санах ой RAM", val: "16GB (2*8GB DDR3 1600MHz)", qty: "2", unit: "ш" },
+          { name: "Дэлгэц Monitor", val: "LG, 24EA53T-P 23.8W IPS", qty: "1", unit: "ш" }
+        ],
+        accessories: [
+          { name: "Тэжээлийн кабель", val: "Стандарт", qty: "2", unit: "ш" },
+          { name: "Дэлгэцийн кабель", val: "DVI / VGA", qty: "1", unit: "ш" }
+        ],
+        logs: [
+          {
+            id: 1,
+            date: "2026-03-12",
+            action: "Үзлэг, үйлчилгээ хийв., Панелиудын бохирдлыг цэвэрлэж, тоосыг соруулав.",
+            statusAfter: "Хэвийн ажиллагаатай",
+            issue: "Хэвийн",
+            issueDate: null,
+            parts: "Байхгүй",
+            technician: "Ц.Ганзориг",
+            status: "approved",
+            approvedBy: "Ц.Ганзориг",
+            approvedDate: "2026-03-13",
+            auditComment: "Танилцсан, шаардлага хангасан.",
+            auditedBy: "Д.Хяналт",
+            auditedDate: "2026-03-14"
+          }
+        ]
+      },
+      {
+        journalNo: "202001001",
+        assetCode: "FA-2020-0045",
+        category: "Хяналт мэдээллийн систем",
+        deviceCategory: "Сервер болон компьютер",
+        model: "Сервер компьютер / HP ProLiant DL380",
+        location: "Серверийн өрөө",
+        owner: "Б.Админ",
+        dept: "МТХА",
+        role: "Системийн админ",
+        commissionedDate: "2020-05-10",
+        lifespan: "7 жил",
+        interval: "сар бүр",
+        status: "Хэвийн ажиллагаатай",
+        statusDate: "2020-05-10",
+        specs: [
+          { name: "CPU", val: "Intel Xeon Silver 4210", qty: "1", unit: "ш" },
+          { name: "RAM", val: "64GB DDR4", qty: "4", unit: "ш" }
+        ],
+        accessories: [{ name: "Тэжээлийн блок", val: "Redundant", qty: "2", unit: "ш" }],
+        logs: []
+      },
+      {
+        journalNo: "201903001",
+        assetCode: "FA-2019-0089",
+        category: "Холбооны систем",
+        deviceCategory: "Сүлжээний тоног төхөөрөмж",
+        model: "Cisco Catalyst 2960 Switch",
+        location: "Холбооны өрөө",
+        owner: "Ц.Ганзориг",
+        dept: "МТХА",
+        role: "Инженер",
+        commissionedDate: "2019-08-15",
+        lifespan: "10 жил",
+        interval: "жилд 2 удаа",
+        status: "Гэмтсэн",
+        statusDate: "2019-08-15",
+        specs: [
+          { name: "Портын тоо", val: "48 Ports Gigabit", qty: "1", unit: "ш" },
+          { name: "Uplink", val: "4x SFP", qty: "1", unit: "ш" }
+        ],
+        accessories: [{ name: "Тэжээлийн кабель", val: "Стандарт", qty: "1", unit: "ш" }],
+        logs: [
+          {
+            id: 2,
+            date: "2026-03-25",
+            action: "Үзлэг хийв, оношлогоо явуулсан",
+            statusAfter: "Гэмтсэн",
+            issue: "Порт шатсан",
+            issueDate: "2026-03-24",
+            parts: "Байхгүй",
+            technician: "Ц.Ганзориг",
+            status: "pending",
+            approvedBy: null,
+            approvedDate: null,
+            auditComment: null,
+            auditedBy: null
+          }
+        ]
+      }
+    ];
+
+    let assets = INITIAL_ASSETS;
+    let currentAssetNo = "201402001";
+    let selectedSectionFilter = "ALL";
+    let selectedDeviceCatFilter = "ALL";
+
+    function loadFromStorage() {
+      try {
+        const u = localStorage.getItem('sys_users_v30');
+        if (u) users = JSON.parse(u);
+        const a = localStorage.getItem('multi_assets_db_v30');
+        if (a) assets = JSON.parse(a);
+        const c = localStorage.getItem('current_logged_user_v30');
+        if (c) currentUser = JSON.parse(c);
+        const cats = localStorage.getItem('sys_device_categories_v30');
+        if (cats) deviceCategories = JSON.parse(cats);
+      } catch (e) {
+        console.warn('Storage read error.');
+      }
+
+      assets.forEach(a => {
+        if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
+      });
+    }
+
+    function saveDB() {
+      try {
+        localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
+        localStorage.setItem('sys_users_v30', JSON.stringify(users));
+        localStorage.setItem('sys_device_categories_v30', JSON.stringify(deviceCategories));
+        if (currentUser) {
+          localStorage.setItem('current_logged_user_v30', JSON.stringify(currentUser));
+        } else {
+          localStorage.removeItem('current_logged_user_v30');
+        }
+      } catch (err) {
+        console.error('Save failed:', err);
+      }
+    }
+
+    function startLiveClock() {
+      const dayNames = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
+      function update() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const dayStr = dayNames[now.getDay()];
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+
+        const dateEl = document.getElementById('liveDateText');
+        const clockEl = document.getElementById('liveClockText');
+        if (dateEl) dateEl.innerText = `${y}.${m}.${d} (${dayStr})`;
+        if (clockEl) clockEl.innerText = `${hh}:${mm}:${ss}`;
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    function checkAuth() {
+      const loginScreen = document.getElementById('loginScreen');
+      const mainApp = document.getElementById('mainApp');
+
+      if (currentUser) {
+        loginScreen.classList.add('hidden');
+        mainApp.classList.remove('hidden');
+        applyUserPermissions();
+        renderDeviceCategorySelectors();
+        initSectionFilterSelector();
+        initAssetSelector();
+        renderCurrentAsset();
+        renderDashboardMetrics();
+        renderNotifications();
+        generateReport();
+        switchTab('passport');
+      } else {
+        loginScreen.classList.remove('hidden');
+        mainApp.classList.add('hidden');
+      }
+    }
+
+    window.quickLogin = function(usernameKey) {
+      let found = MASTER_USERS.find(u => u.username.toLowerCase() === usernameKey.toLowerCase());
+      if (found) {
+        currentUser = Object.assign({}, found);
+        if (!users.some(u => u.username === found.username)) {
+          users.push(currentUser);
+        }
+        document.getElementById('loginError').classList.add('hidden');
+        saveDB();
+        checkAuth();
+      }
+    };
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim().toLowerCase();
+      const p = document.getElementById('loginPassword').value.trim();
+
+      const found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+
+      if (found) {
+        currentUser = found;
+        document.getElementById('loginError').classList.add('hidden');
+        document.getElementById('loginForm').reset();
+        saveDB();
+        checkAuth();
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      if (confirm('Системээс гарах уу?')) {
+        currentUser = null;
+        saveDB();
+        checkAuth();
+      }
+    }
+
+    function applyUserPermissions() {
+      if (!currentUser) return;
+      document.getElementById('currentUserName').innerText = currentUser.name;
+      document.getElementById('currentUserRoleTitle').innerText = ROLE_TITLES[currentUser.role];
+
+      const isAdmin = currentUser.role === 'admin';
+      const isLead = currentUser.role === 'lead';
+      const isTech = currentUser.role === 'technician';
+      const isAuditor = currentUser.role === 'auditor';
+
+      const sysBadge = document.getElementById('currentUserSystemBadge');
+      if (isAdmin || isLead || isAuditor) {
+        sysBadge.innerText = 'Бүх систем (Бүрэн хандалт)';
+      } else {
+        sysBadge.innerText = currentUser.system || 'Тоолуурын нэгдсэн систем';
+      }
+
+      document.getElementById('btnUserMgmt').classList.toggle('hidden', !isAdmin);
+      document.getElementById('btnManageDevCategories').classList.toggle('hidden', !isAdmin);
+      document.getElementById('excelActions').classList.toggle('hidden', !(isAdmin || isTech));
+      document.getElementById('btnNewAsset').classList.toggle('hidden', !(isAdmin || isTech));
+      document.getElementById('btnNewInspection').classList.toggle('hidden', !(isAdmin || isLead || isTech));
+
+      document.getElementById('signReporterName').innerText = `${currentUser.name}`;
+      document.getElementById('signReporterRole').innerText = `${currentUser.roleTitle || ROLE_TITLES[currentUser.role]} (${currentUser.dept || 'МТХА'})`;
+    }
+
+    function renderDeviceCategorySelectors() {
+      const filterSel = document.getElementById('deviceCategorySelector');
+      const inputSel = document.getElementById('inpDeviceCategory');
+
+      if (filterSel) {
+        filterSel.innerHTML = '<option value="ALL">Бүх ангилал (Бүгд)</option>';
+        deviceCategories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          if (cat === selectedDeviceCatFilter) opt.selected = true;
+          filterSel.appendChild(opt);
+        });
+      }
+
+      if (inputSel) {
+        inputSel.innerHTML = '';
+        deviceCategories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          inputSel.appendChild(opt);
+        });
+      }
+    }
+
+    function renderCategoryManagementList() {
+      const container = document.getElementById('devCategoryListContainer');
+      container.innerHTML = '';
+      deviceCategories.forEach((cat, idx) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-2.5 bg-white text-xs hover:bg-slate-50';
+        div.innerHTML = `
+          <span class="font-semibold text-slate-800">${idx + 1}. ${cat}</span>
+          <div class="flex items-center gap-1.5">
+            <button onclick="editDeviceCategory('${cat}')" class="p-1 text-slate-400 hover:text-blue-600" title="Засах"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteDeviceCategory('${cat}')" class="p-1 text-slate-400 hover:text-red-600" title="Устгах"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.openDevCategoryModal = function() {
+      renderCategoryManagementList();
+      document.getElementById('deviceCategoryModal').classList.remove('hidden');
+    };
+    window.closeDevCategoryModal = function() {
+      document.getElementById('deviceCategoryModal').classList.add('hidden');
+    };
+
+    window.handleAddDevCategory = function(e) {
+      e.preventDefault();
+      const input = document.getElementById('newDevCategoryInput');
+      const val = input.value.trim();
+      if (val && !deviceCategories.includes(val)) {
+        deviceCategories.push(val);
+        saveDB();
+        renderDeviceCategorySelectors();
+        renderCategoryManagementList();
+        input.value = '';
+      } else {
+        alert('Энэ ангилал аль хэдийн бүртгэгдсэн байна!');
+      }
+    };
+
+    window.editDeviceCategory = function(oldCat) {
+      const newCat = prompt('Ангиллын шинэ нэрийг оруулна уу:', oldCat);
+      if (newCat && newCat.trim() && newCat.trim() !== oldCat) {
+        const idx = deviceCategories.indexOf(oldCat);
+        if (idx !== -1) {
+          deviceCategories[idx] = newCat.trim();
+          assets.forEach(a => {
+            if (a.deviceCategory === oldCat) a.deviceCategory = newCat.trim();
+          });
+          saveDB();
+          renderDeviceCategorySelectors();
+          renderCategoryManagementList();
+          renderCurrentAsset();
+        }
+      }
+    };
+
+    window.deleteDeviceCategory = function(cat) {
+      if (deviceCategories.length <= 1) {
+        alert('Хамгийн багадаа 1 ангилал байх ёстой!');
+        return;
+      }
+      if (confirm(`"${cat}" ангиллыг устгах уу?`)) {
+        deviceCategories = deviceCategories.filter(c => c !== cat);
+        assets.forEach(a => {
+          if (a.deviceCategory === cat) a.deviceCategory = "Бусад";
+        });
+        saveDB();
+        renderDeviceCategorySelectors();
+        renderCategoryManagementList();
+        renderCurrentAsset();
+      }
+    };
+
+    function switchTab(tab) {
+      const btnDash = document.getElementById('tabBtnDashboard');
+      const btnPass = document.getElementById('tabBtnPassport');
+      const contentDash = document.getElementById('tabContentDashboard');
+      const contentPass = document.getElementById('tabContentPassport');
+
+      if (tab === 'passport') {
+        btnPass.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20 cursor-pointer";
+        btnDash.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer";
+        contentPass.classList.remove('hidden');
+        contentDash.classList.add('hidden');
+        renderCurrentAsset();
+      } else {
+        btnDash.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20 cursor-pointer";
+        btnPass.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer";
+        contentDash.classList.remove('hidden');
+        contentPass.classList.add('hidden');
+        renderDashboardMetrics();
+      }
+    }
+
+    function renderDashboardMetrics() {
+      const total = assets.length;
+      const normal = assets.filter(a => (a.status || 'Хэвийн ажиллагаатай') === 'Хэвийн ажиллагаатай').length;
+      const issue = assets.filter(a => a.status === 'Гэмтсэн' || a.status === 'Засварт байгаа').length;
+      
+      let overdueCount = 0;
+      let pendingApprovalCount = 0;
+
+      assets.forEach(a => {
+        const nextData = calculateNextInspectionData(a);
+        if (nextData.diffDays <= 3) overdueCount++;
+        (a.logs || []).forEach(l => {
+          if (l.status === 'pending') pendingApprovalCount++;
+        });
+      });
+
+      document.getElementById('kpiTotalAssets').innerText = total;
+      document.getElementById('kpiNormalAssets').innerText = normal;
+      document.getElementById('kpiNormalPct').innerText = total ? `${Math.round((normal / total) * 100)}% хэвийн ажиллаж байна` : '0%';
+
+      document.getElementById('kpiIssueAssets').innerText = issue;
+      document.getElementById('kpiIssuePct').innerText = total ? `${Math.round((issue / total) * 100)}% гэмтэл сааталтай` : '0%';
+
+      document.getElementById('kpiOverdueInspection').innerText = overdueCount;
+      document.getElementById('kpiPendingApproval').innerText = `${pendingApprovalCount} үзлэг батлах дутуу`;
+
+      const systemBars = document.getElementById('systemDistributionBars');
+      systemBars.innerHTML = '';
+
+      const systems = [
+        "Хяналт мэдээллийн систем",
+        "Тоолуурын нэгдсэн систем",
+        "Холбооны систем",
+        "Мэдээллийн систем"
+      ];
+
+      systems.forEach(sName => {
+        const count = assets.filter(a => a.category === sName).length;
+        const pct = total ? Math.round((count / total) * 100) : 0;
+
+        const div = document.createElement('div');
+        div.className = 'space-y-1';
+        div.innerHTML = `
+          <div class="flex justify-between font-semibold text-slate-700">
+            <span>${sName}</span>
+            <span class="text-blue-600">${count} төхөөрөмж (${pct}%)</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+          </div>
+        `;
+        systemBars.appendChild(div);
+      });
+    }
+
+    function initAssetCheckboxList() {
+      const container = document.getElementById('assetCheckboxList');
+      container.innerHTML = '';
+      assets.forEach(a => {
+        const label = document.createElement('label');
+        label.className = 'flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 hover:border-blue-400 cursor-pointer';
+        label.innerHTML = `
+          <input type="checkbox" value="${a.journalNo}" class="asset-report-check rounded text-blue-600">
+          <span class="truncate font-medium">№${a.journalNo} | ${a.model} (${a.deviceCategory || 'Төхөөрөмж'})</span>
+        `;
+        container.appendChild(label);
+      });
+    }
+
+    window.toggleSelectAllAssets = function(checked) {
+      document.querySelectorAll('.asset-report-check').forEach(cb => cb.checked = checked);
+    };
+
+    window.onReportTypeChange = function(val) {
+      document.getElementById('filterSectionBlock').classList.toggle('hidden', val !== 'BY_SECTION');
+      document.getElementById('filterAssetCheckboxBlock').classList.toggle('hidden', val !== 'SELECTED_ASSETS');
+      if (val === 'SELECTED_ASSETS') {
+        initAssetCheckboxList();
+      }
+    };
+
+    window.generateReport = function() {
+      const rType = document.getElementById('reportTypeSelector').value;
+      const secTarget = document.getElementById('reportSectionTarget').value;
+
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const da = String(now.getDate()).padStart(2, '0');
+      const hr = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${yr}-${mo}-${da} ${hr}:${mi}`;
+      document.getElementById('reportTimestamp').innerText = timeStr;
+
+      let filtered = [...assets];
+      let title = "ТОНОГ ТӨХӨӨРӨМЖИЙН НЭГДСЭН ТАЙЛАН";
+      let subtitle = "Бүх систем, төхөөрөмжийн ажиллагаа ба үзлэгийн түүх";
+
+      if (rType === 'LAST_30') {
+        title = "СҮҮЛИЙН 1 САРЫН ҮЗЛЭГ ХИЙГДСЭН ТӨХӨӨРӨМЖИЙН ТАЙЛАН";
+        subtitle = "Сүүлийн 30 хоногт үзлэг хийгдсэн төхөөрөмжүүдийн жагсаалт";
+        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+        filtered = assets.filter(a => (a.logs || []).some(l => new Date(l.date) >= thirtyDaysAgo));
+      } else if (rType === 'LAST_7') {
+        title = "СҮҮЛИЙН 7 ХОНОГИЙН ҮЗЛЭГ ХИЙГДСЭН ТӨХӨӨРӨМЖИЙН ТАЙЛАН";
+        subtitle = "Сүүлийн 7 хоногт үзлэг хийгдсэн төхөөрөмжүүдийн жагсаалт";
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        filtered = assets.filter(a => (a.logs || []).some(l => new Date(l.date) >= sevenDaysAgo));
+      } else if (rType === 'SELECTED_ASSETS') {
+        title = "СОНГОСОН ТОНОГ ТӨХӨӨРӨМЖҮҮДИЙН ТАЙЛАН";
+        subtitle = "Сонгогдсон төхөөрөмжүүдийн дэлгэрэнгүй жагсаалт";
+        const selectedNos = Array.from(document.querySelectorAll('.asset-report-check:checked')).map(cb => cb.value);
+        filtered = assets.filter(a => selectedNos.includes(a.journalNo));
+      } else if (rType === 'BY_SECTION') {
+        title = `${secTarget.toUpperCase()} ХЭСГИЙН ТАЙЛАН`;
+        subtitle = `${secTarget}-д хамаарах бүх тоног төхөөрөмжийн хөтлөлт`;
+        filtered = assets.filter(a => a.category === secTarget);
+      }
+
+      document.getElementById('reportHeaderTitle').innerText = title;
+      document.getElementById('reportHeaderSubtitle').innerText = subtitle;
+
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="9" class="p-6 text-center text-slate-400 italic">Сонгосон шалгуурт тохирох төхөөрөмж олдсонгүй.</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      filtered.forEach((a, idx) => {
+        const lastLog = (a.logs && a.logs.length > 0) ? a.logs[0] : null;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50';
+
+        let logDetail = '<span class="text-slate-400">Үзлэгийн тэмдэглэл байхгүй</span>';
+        if (lastLog) {
+          logDetail = `
+            <div><strong>Ажил:</strong> ${lastLog.action || '-'}</div>
+            <div class="text-[11px] text-slate-600 mt-0.5"><strong>Гэмтэл:</strong> ${lastLog.issue || 'Хэвийн'} ${lastLog.issueDate ? `(${lastLog.issueDate})` : ''} | <strong>Сэлбэг:</strong> ${lastLog.parts || 'Байхгүй'}</div>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td class="p-2.5 text-center font-bold text-slate-400 border-r border-slate-200">${idx + 1}</td>
+          <td class="p-2.5 font-bold text-blue-700 font-mono border-r border-slate-200">${a.journalNo}</td>
+          <td class="p-2.5 font-mono text-slate-700 border-r border-slate-200">${a.assetCode || '-'}</td>
+          <td class="p-2.5 font-semibold text-slate-900 border-r border-slate-200">${a.model} <span class="text-[10px] text-slate-400 block">${a.deviceCategory || ''}</span></td>
+          <td class="p-2.5 text-slate-600 border-r border-slate-200">${a.category}</td>
+          <td class="p-2.5 text-slate-600 border-r border-slate-200">${a.location} (${a.owner})</td>
+          <td class="p-2.5 border-r border-slate-200 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${a.status === 'Гэмтсэн' ? 'bg-rose-100 text-rose-700' : (a.status === 'Засварт байгаа' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800')}">
+              ${a.status || 'Хэвийн'}
+            </span>
+          </td>
+          <td class="p-2.5 text-slate-600 whitespace-nowrap border-r border-slate-200">${lastLog ? lastLog.date : (a.commissionedDate || '-')}</td>
+          <td class="p-2.5">${logDetail}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    window.printReportDirectly = function() {
+      generateReport();
+      window.print();
+    };
+
+    function initSectionFilterSelector() {
+      const secSel = document.getElementById('sectionFilterSelector');
+      if (!currentUser) return;
+
+      const isTech = currentUser.role === 'technician';
+      const isViewer = currentUser.role === 'viewer';
+
+      if (isTech || isViewer) {
+        selectedSectionFilter = currentUser.system || "Тоолуурын нэгдсэн систем";
+        secSel.value = selectedSectionFilter;
+        secSel.disabled = true;
+      } else {
+        secSel.disabled = false;
+        secSel.value = selectedSectionFilter;
+      }
+    }
+
+    window.onSectionFilterChange = function(val) {
+      selectedSectionFilter = val;
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    window.onDeviceCatFilterChange = function(val) {
+      selectedDeviceCatFilter = val;
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    function getAccessibleAssets() {
+      if (!currentUser) return [];
+      const isAdmin = currentUser.role === 'admin';
+      const isLead = currentUser.role === 'lead';
+      const isAuditor = currentUser.role === 'auditor';
+
+      let list = assets;
+      if (!isAdmin && !isLead && !isAuditor) {
+        list = assets.filter(a => a.category === currentUser.system);
+      } else {
+        if (selectedSectionFilter !== "ALL") {
+          list = assets.filter(a => a.category === selectedSectionFilter);
+        }
+      }
+
+      if (selectedDeviceCatFilter !== "ALL") {
+        list = list.filter(a => (a.deviceCategory || "Сервер болон компьютер") === selectedDeviceCatFilter);
+      }
+
+      return list;
+    }
+
+    function initAssetSelector() {
+      const sel = document.getElementById('assetSelector');
+      sel.innerHTML = '';
+      const accessible = getAccessibleAssets();
+
+      if (accessible.length === 0) {
+        const opt = document.createElement('option');
+        opt.textContent = 'Төхөөрөмж олдсонгүй';
+        sel.appendChild(opt);
+        renderCurrentAsset();
+        return;
+      }
+
+      if (!accessible.some(a => a.journalNo === currentAssetNo)) {
+        currentAssetNo = accessible[0].journalNo;
+      }
+
+      accessible.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.journalNo;
+        opt.textContent = `№ ${a.journalNo} | ${a.model}`;
+        if (a.journalNo === currentAssetNo) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    window.onSelectAsset = function(val) {
+      currentAssetNo = val;
+      renderCurrentAsset();
+    };
+
+    function calculateNextInspectionData(asset) {
+      if (!asset) return { text: '-', diffDays: 999 };
+      const interval = (asset.interval || 'улиралд нэг удаа').toLowerCase();
+      let daysToAdd = 90;
+
+      if (interval.includes('өдөр бүр')) daysToAdd = 1;
+      else if (interval.includes('сард 2 удаа')) daysToAdd = 15;
+      else if (interval.includes('сар бүр')) daysToAdd = 30;
+      else if (interval.includes('улиралд нэг удаа')) daysToAdd = 90;
+      else if (interval.includes('жилд 2 удаа')) daysToAdd = 180;
+      else if (interval.includes('жил бүр')) daysToAdd = 365;
+
+      let baseDateStr = asset.commissionedDate;
+      if (asset.logs && asset.logs.length > 0) {
+        const sorted = [...asset.logs].sort((x, y) => new Date(y.date) - new Date(x.date));
+        baseDateStr = sorted[0].date;
+      }
+
+      if (!baseDateStr) return { text: 'Хуваарь тодорхойгүй', diffDays: 999 };
+
+      const baseDate = new Date(baseDateStr);
+      const targetDate = new Date(baseDate);
+      targetDate.setDate(targetDate.getDate() + daysToAdd);
+
+      const targetIso = targetDate.toISOString().split('T')[0];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      targetDate.setHours(0, 0, 0, 0);
+
+      const diffTime = targetDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      let text = "";
+      if (diffDays < 0) {
+        text = `${targetIso} <span class="text-rose-600 font-bold ml-1">(${Math.abs(diffDays)} хоног хэтэрсэн)</span>`;
+      } else if (diffDays === 0) {
+        text = `${targetIso} <span class="text-amber-600 font-bold ml-1">(Өнөөдөр хийгдэнэ)</span>`;
+      } else {
+        const m = Math.floor(diffDays / 30);
+        const d = diffDays % 30;
+        let remStr = "";
+        if (m > 0) remStr += `${m} сар `;
+        if (d > 0 || m === 0) remStr += `${d} хоног `;
+        text = `${targetIso} <span class="text-emerald-600 font-semibold ml-1">(${remStr.trim()} дутуу)</span>`;
+      }
+
+      return { text, diffDays, targetIso };
+    }
+
+    function getStatusBadgeHtml(status, statusDate) {
+      status = status || "Хэвийн ажиллагаатай";
+      let daysPassed = 0;
+      if (statusDate) {
+        const sDate = new Date(statusDate);
+        sDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        daysPassed = Math.max(0, Math.floor((today - sDate) / (1000 * 60 * 60 * 24)));
+      }
+
+      let dateInfo = statusDate ? `(${statusDate}, ${daysPassed} хоног)` : '';
+
+      switch (status) {
+        case "Хэвийн ажиллагаатай":
+          return `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300">● Хэвийн ажиллагаатай</span>`;
+        case "Гэмтсэн":
+          return `<span class="bg-rose-100 text-rose-800 border border-rose-300">● Гэмтсэн ${dateInfo}</span>`;
+        case "Засварт байгаа":
+          return `<span class="bg-amber-100 text-amber-800 border border-amber-300">● Засварт байгаа ${dateInfo}</span>`;
+        case "Актлагдсан":
+          return `<span class="bg-slate-200 text-slate-800 border border-slate-400">● Актлагдсан ${dateInfo}</span>`;
+        default:
+          return `<span class="bg-slate-100 text-slate-800">${status}</span>`;
+      }
+    }
+
+    function renderCurrentAsset() {
+      const accessible = getAccessibleAssets();
+      const a = accessible.find(x => x.journalNo === currentAssetNo) || accessible[0];
+
+      if (!a) {
+        document.getElementById('dispJournalNo').innerText = '-';
+        document.getElementById('dispAssetCode').innerText = '-';
+        document.getElementById('dispModel').innerText = 'Энэ ангилалд төхөөрөмж олдсонгүй';
+        document.getElementById('dispCategoryBadge').innerText = '-';
+        const dBadge = document.getElementById('dispDeviceCatBadge');
+        if (dBadge) dBadge.innerText = '-';
+        document.getElementById('dispStatusBadge').innerHTML = '-';
+        document.getElementById('specsTableBody').innerHTML = '';
+        document.getElementById('accessoriesTableBody').innerHTML = '';
+        document.getElementById('maintenanceTableBody').innerHTML = '';
+        return;
+      }
+
+      currentAssetNo = a.journalNo;
+      document.getElementById('dispJournalNo').innerText = a.journalNo;
+      document.getElementById('dispAssetCode').innerText = a.assetCode || 'Кодгүй';
+      document.getElementById('dispModel').innerText = a.model;
+      document.getElementById('dispCategoryBadge').innerText = a.category || 'Тоолуурын нэгдсэн систем';
+      const dBadge = document.getElementById('dispDeviceCatBadge');
+      if (dBadge) dBadge.innerText = a.deviceCategory || 'Сервер болон компьютер';
+      document.getElementById('dispStatusBadge').innerHTML = getStatusBadgeHtml(a.status, a.statusDate);
+      document.getElementById('dispLocation').innerText = a.location;
+      document.getElementById('dispOwner').innerText = a.owner;
+      document.getElementById('dispDept').innerText = a.dept || '-';
+      document.getElementById('dispRole').innerText = a.role || '-';
+      document.getElementById('dispCommissionedDate').innerText = a.commissionedDate || '-';
+      document.getElementById('dispLifespan').innerText = a.lifespan || '8 жил';
+      document.getElementById('dispInterval').innerText = a.interval || 'улиралд нэг удаа';
+
+      const nextData = calculateNextInspectionData(a);
+      document.getElementById('dispNextInspection').innerHTML = nextData.text;
+
+      // Техникийн үзүүлэлтийн хүснэгт
+      const specTbody = document.getElementById('specsTableBody');
+      specTbody.innerHTML = '';
+      (a.specs || []).forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/50';
+        tr.innerHTML = `
+          <td class="px-3 py-2.5 text-center text-slate-400 font-bold">${idx + 1}</td>
+          <td class="px-3 py-2.5 font-semibold text-slate-800">${s.name || '-'}</td>
+          <td class="px-3 py-2.5 font-mono text-slate-900 bg-slate-50/50 font-medium">${s.val || '-'}</td>
+          <td class="px-3 py-2.5 text-center font-bold text-slate-700">${s.qty || '1'}</td>
+          <td class="px-3 py-2.5 text-slate-500">${s.unit || 'ш'}</td>
+        `;
+        specTbody.appendChild(tr);
+      });
+
+      // Иж бүрдлийн хүснэгт
+      const accTbody = document.getElementById('accessoriesTableBody');
+      accTbody.innerHTML = '';
+      (a.accessories || []).forEach((acc, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/50';
+        tr.innerHTML = `
+          <td class="px-2.5 py-2.5 text-center text-slate-400 font-semibold">${idx + 1}</td>
+          <td class="px-2.5 py-2.5 font-medium text-slate-800">${acc.name || '-'}</td>
+          <td class="px-2.5 py-2.5 text-center font-bold text-slate-700">${acc.qty || '1'}</td>
+          <td class="px-2.5 py-2.5 text-slate-500">${acc.unit || 'ш'}</td>
+        `;
+        accTbody.appendChild(tr);
+      });
+
+      renderMaintenanceLogs(a);
+    }
+
+    // ================= ҮЗЛЭГ БҮРТГЭХ ХЭСГИЙН ШИНЭ ЛОГИК =================
+    window.toggleIssueDescription = function(val) {
+      const block = document.getElementById('issueDescBlock');
+      const dateInput = document.getElementById('inspIssueDate');
+      const descInput = document.getElementById('inspIssueDesc');
+      if (val === 'Гэмтэлтэй') {
+        block.classList.remove('hidden');
+        if (dateInput) {
+          dateInput.required = true;
+          if (!dateInput.value) dateInput.valueAsDate = new Date();
+        }
+        if (descInput) descInput.required = true;
+      } else {
+        block.classList.add('hidden');
+        if (dateInput) {
+          dateInput.required = false;
+          dateInput.value = '';
+        }
+        if (descInput) {
+          descInput.required = false;
+          descInput.value = '';
+        }
+      }
+    };
+
+    window.openInspectionModal = function() {
+      document.getElementById('inspectionModalTitle').innerText = "Үзлэг, засвар үйлчилгээ бүртгэх";
+      document.getElementById('editInspectionLogId').value = "";
+      document.getElementById('inspTech').value = currentUser ? currentUser.name : '';
+      document.getElementById('inspDate').valueAsDate = new Date();
+      ['chkTask1', 'chkTask2', 'chkTask3', 'chkTask4', 'chkTask5'].forEach(id => document.getElementById(id).checked = false);
+      document.getElementById('inspActionCustom').value = '';
+      
+      document.getElementById('inspIssueType').value = 'Хэвийн';
+      toggleIssueDescription('Хэвийн');
+
+      document.getElementById('partsInputTableBody').innerHTML = '';
+      document.getElementById('inspectionModal').classList.remove('hidden');
+    };
+
+    window.closeInspectionModal = function() {
+      document.getElementById('inspectionModal').classList.add('hidden');
+    };
+
+    window.handleInspectionSubmit = function(e) {
+      e.preventDefault();
+
+      const issueType = document.getElementById('inspIssueType').value;
+      const issueDateVal = document.getElementById('inspIssueDate').value;
+      const issueDescVal = document.getElementById('inspIssueDesc').value.trim();
+
+      // ШАЛГАЛТ: Гэмтэлтэй үед огноо ба тайлбар хоосон байвал алдаа заана
+      if (issueType === 'Гэмтэлтэй') {
+        if (!issueDateVal) {
+          alert('Гэмтэл гарсан огноог заавал бүртгэнэ үү!');
+          document.getElementById('inspIssueDate').focus();
+          return;
+        }
+        if (!issueDescVal) {
+          alert('Гэмтлийн дэлгэрэнгүй тайлбарыг заавал бичнэ үү!');
+          document.getElementById('inspIssueDesc').focus();
+          return;
+        }
+      }
+
+      const tasks = [];
+      if (document.getElementById('chkTask1').checked) tasks.push("Үзлэг, үйлчилгээ хийв.");
+      if (document.getElementById('chkTask2').checked) tasks.push("Тоног төхөөрөмж сольж суурилуулсан.");
+      if (document.getElementById('chkTask3').checked) tasks.push("Үл тохирол арилгасан.");
+      if (document.getElementById('chkTask4').checked) tasks.push("Панелиудын бохирдлыг цэвэрлэж, тоосыг соруулав.");
+      if (document.getElementById('chkTask5').checked) tasks.push("Төхөөрөмжийн тохиргооны файлыг хуулж авч, архивлав.");
+      const custom = document.getElementById('inspActionCustom').value.trim();
+      if (custom) tasks.push(custom);
+
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a) return;
+      if (!a.logs) a.logs = [];
+
+      const isLeadOrAdmin = currentUser.role === 'lead' || currentUser.role === 'admin';
+      const logId = document.getElementById('editInspectionLogId').value;
+      const statusAfter = document.getElementById('inspStatus').value;
+      const inspDate = document.getElementById('inspDate').value;
+
+      const issueText = issueType === 'Гэмтэлтэй' ? `Гэмтэлтэй: ${issueDescVal}` : 'Хэвийн';
+
+      if (logId) {
+        const l = a.logs.find(x => x.id == logId);
+        if (l) {
+          l.date = inspDate;
+          l.action = tasks.join(', ');
+          l.statusAfter = statusAfter;
+          l.issue = issueText;
+          l.issueDate = issueType === 'Гэмтэлтэй' ? issueDateVal : null;
+        }
+      } else {
+        a.logs.unshift({
+          id: Date.now(),
+          date: inspDate,
+          action: tasks.join(', ') || 'Үзлэг хийгдсэн',
+          statusAfter: statusAfter,
+          issue: issueText,
+          issueDate: issueType === 'Гэмтэлтэй' ? issueDateVal : null,
+          parts: 'Байхгүй',
+          technician: document.getElementById('inspTech').value,
+          status: isLeadOrAdmin ? 'approved' : 'pending',
+          approvedBy: isLeadOrAdmin ? currentUser.name : null,
+          approvedDate: isLeadOrAdmin ? inspDate : null,
+          auditComment: null,
+          auditedBy: null
+        });
+      }
+
+      saveDB();
+      renderCurrentAsset();
+      renderDashboardMetrics();
+      renderNotifications();
+      generateReport();
+      closeInspectionModal();
+    };
+
+    window.closeDevCategoryModal = function() {
+      document.getElementById('deviceCategoryModal').classList.add('hidden');
+    };
+    window.closeExcelErrorModal = function() {
+      document.getElementById('excelErrorModal').classList.add('hidden');
+    };
+    window.closeUserGuideModal = function() {
+      document.getElementById('userGuideModal').classList.add('hidden');
+    };
+    window.closeUserMgmtModal = function() {
+      document.getElementById('userMgmtModal').classList.add('hidden');
+    };
+
+    // ================= ЭХЛҮҮЛЭХ =================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromStorage();
+      startLiveClock();
+      checkAuth();
+    });
+  </script>
+</body>
+</html>
