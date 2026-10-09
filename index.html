@@ -450,35 +450,43 @@
         </section>
       </div>
 
-      <!-- IV. ҮЗЛЭГ, ЗАСВАР ҮЙЛЧИЛГЭЭНИЙ ТҮҮХ -->
-      <section id="maintenanceSection" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-2">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <i class="fa-solid fa-clipboard-check text-blue-600"></i> IV. Үзлэг, засвар үйлчилгээ ба батламж
-            </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Үзлэг бүртгэх, засах, устгах болон олон шатлалт баталгаажуулалт</p>
+      <!-- IV. ҮЗЛЭГ, ЗАСВАР ҮЙЛЧИЛГЭЭНИЙ ТҮҮХ (MODERN AUDIT & LOGS) -->
+      <section id="maintenanceSection" class="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden transition-all">
+        <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-gradient-to-r from-slate-50/80 via-white to-blue-50/30">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-base border border-blue-100 shadow-2xs">
+              <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-wider">
+                IV. Үзлэг, засвар үйлчилгээ ба батламж
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Үзлэг хөтлөлт, инженер-ахлахын баталгаажуулалт, хяналтын дүгнэлт</p>
+            </div>
           </div>
+
+          <!-- Үзлэгийн тоон хураангуй (Статистик) -->
+          <div id="maintenanceLogCounters" class="flex items-center gap-2 text-xs font-semibold"></div>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50/80 text-slate-400 uppercase font-semibold">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-50/90 text-slate-500 uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-200/80">
               <tr>
-                <th class="px-3 py-3 w-8 text-center">№</th>
-                <th class="px-3 py-3">Огноо</th>
-                <th class="px-3 py-3">Хийсэн ажил / Үзлэг</th>
-                <th class="px-3 py-3">Илэрсэн эвдрэл</th>
-                <th class="px-3 py-3">Сольсон сэлбэг</th>
-                <th class="px-3 py-3">Шинэ төлөв</th>
-                <th class="px-3 py-3">Гүйцэтгэсэн</th>
-                <th class="px-3 py-3">Батламж</th>
-                <th class="px-3 py-3">Ахлахын батламж</th>
-                <th class="px-3 py-3">Хяналтын дүгнэлт</th>
-                <th class="px-3 py-3 text-center no-print">Үйлдэл</th>
+                <th class="px-3.5 py-3 w-10 text-center">№</th>
+                <th class="px-3.5 py-3">Огноо</th>
+                <th class="px-3.5 py-3">Хийсэн ажил / Үзлэг</th>
+                <th class="px-3.5 py-3">Илэрсэн эвдрэл</th>
+                <th class="px-3.5 py-3">Сольсон сэлбэг</th>
+                <th class="px-3.5 py-3">Шинэ төлөв</th>
+                <th class="px-3.5 py-3">Гүйцэтгэсэн</th>
+                <th class="px-3.5 py-3">Батламж</th>
+                <th class="px-3.5 py-3">Ахлахын батламж</th>
+                <th class="px-3.5 py-3">Хяналтын дүгнэлт</th>
+                <th class="px-3.5 py-3 text-center no-print">Үйлдэл</th>
               </tr>
             </thead>
-            <tbody id="maintenanceTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            <tbody id="maintenanceTableBody" class="divide-y divide-slate-100/90 text-slate-700"></tbody>
           </table>
         </div>
       </section>
@@ -2478,7 +2486,21 @@ async function loadFromStorage() {
       const tbody = document.getElementById('maintenanceTableBody');
       if (!tbody) return;
       tbody.innerHTML = '';
+// Дээд талын үзлэгийн тоон статистик харуулах
+      const counterEl = document.getElementById('maintenanceLogCounters');
+      if (counterEl) {
+        const allLogs = asset.logs || [];
+        const approvedCount = allLogs.filter(l => l.status === 'approved').length;
+        const pendingCount = allLogs.filter(l => l.status === 'pending').length;
+        const rejectedCount = allLogs.filter(l => l.auditStatus === 'rejected').length;
 
+        counterEl.innerHTML = `
+          <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">Нийт: ${allLogs.length}</span>
+          <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">Батлагдсан: ${approvedCount}</span>
+          ${pendingCount > 0 ? `<span class="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">Хүлээгдэж буй: ${pendingCount}</span>` : ''}
+          ${rejectedCount > 0 ? `<span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 border border-rose-200">Татгалзсан: ${rejectedCount}</span>` : ''}
+        `;
+      }
       // Сүүлийн огноотой үзлэгийг хамгийн эхэнд байрлуулах
       let logs = [...(asset.logs || [])].sort((x, y) => new Date(y.date) - new Date(x.date));
 
