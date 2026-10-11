@@ -2882,7 +2882,7 @@ window.closeUserMgmtModal = function() {
   
     /* ===== ЭНД ХҮРТЭЛ ОРУУЛААД ДУУСНА ===== */
 // ================= ТӨХӨӨРӨМЖ НЭМЭХ ЛОГИК =================
-    window.openNewAssetModal = function() {
+window.openNewAssetModal = function() {
       const modal = document.getElementById('newAssetModal');
       const form = document.getElementById('newAssetForm');
       if (form) form.reset();
@@ -2890,10 +2890,23 @@ window.closeUserMgmtModal = function() {
       const commDate = document.getElementById('inpCommDate');
       if (commDate) commDate.valueAsDate = new Date();
 
+      const catSelect = document.getElementById('inpCategory');
+
       if (currentUser) {
         document.getElementById('inpOwner').value = currentUser.name || '';
         document.getElementById('inpDept').value = currentUser.dept || 'МТХА';
         document.getElementById('inpRole').value = currentUser.roleTitle || ROLE_TITLES[currentUser.role] || '';
+
+        // ШИНЭЧЛЭЛ: Админ, ахлах, хяналтын ажилтан БИШ бол зөвхөн хариуцсан систем автоматаар сонгогдож, түгжигдэнэ
+        const isPrivileged = (currentUser.role === 'admin' || currentUser.role === 'lead' || currentUser.role === 'auditor');
+        if (!isPrivileged && currentUser.system) {
+          catSelect.value = currentUser.system;
+          catSelect.disabled = true;
+          catSelect.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-80');
+        } else {
+          catSelect.disabled = false;
+          catSelect.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-80');
+        }
       }
 
       renderDeviceCategorySelectors();
@@ -2908,8 +2921,13 @@ window.closeUserMgmtModal = function() {
     };
 
     window.closeNewAssetModal = function() {
-      document.getElementById('newAssetModal').classList.add('hidden');
-    };
+  const catSelect = document.getElementById('inpCategory');
+  if (catSelect) {
+    catSelect.disabled = false;
+    catSelect.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-80');
+  }
+  document.getElementById('newAssetModal').classList.add('hidden');
+};
 
     window.autoGenerateJournalNo = function() {
       const commDate = document.getElementById('inpCommDate').value;
@@ -3012,10 +3030,16 @@ window.closeUserMgmtModal = function() {
         if (name) accessories.push({ name, val, qty, unit });
       });
 
+      // Сонголт түгжигдсэн (disabled) үед ч утгыг алдахгүй найдвартай авах шалгалт
+      const isPrivileged = currentUser && (currentUser.role === 'admin' || currentUser.role === 'lead' || currentUser.role === 'auditor');
+      const assetCategory = (!isPrivileged && currentUser?.system) 
+        ? currentUser.system 
+        : document.getElementById('inpCategory').value;
+
       const newAsset = {
         journalNo: document.getElementById('inpJournalNo').value.trim(),
         assetCode: document.getElementById('inpAssetCode').value.trim(),
-        category: document.getElementById('inpCategory').value,
+        category: assetCategory,
         deviceCategory: document.getElementById('inpDeviceCategory').value,
         model: document.getElementById('inpModel').value.trim(),
         status: document.getElementById('inpStatus').value,
