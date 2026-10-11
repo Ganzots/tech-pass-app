@@ -2288,7 +2288,7 @@ async function loadFromStorage() {
       renderCurrentAsset();
     };
 
-    function calculateNextInspectionData(asset) {
+function calculateNextInspectionData(asset) {
       if (!asset) return { text: '-', diffDays: 999 };
       const interval = (asset.interval || 'улиралд нэг удаа').toLowerCase();
       let daysToAdd = 90;
@@ -2308,11 +2308,15 @@ async function loadFromStorage() {
 
       if (!baseDateStr) return { text: 'Хуваарь тодорхойгүй', diffDays: 999 };
 
-      const baseDate = new Date(baseDateStr);
+      // Цагийн бүсийн зөрүүнээс сэргийлж YYYY-MM-DD-ээр салгаж тооцох
+      const parts = baseDateStr.split('-');
+      const baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
       const targetDate = new Date(baseDate);
       targetDate.setDate(targetDate.getDate() + daysToAdd);
 
-      const targetIso = targetDate.toISOString().split('T')[0];
+      const pad = n => String(n).padStart(2, '0');
+      const targetIso = `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}`;
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       targetDate.setHours(0, 0, 0, 0);
@@ -2336,7 +2340,6 @@ async function loadFromStorage() {
 
       return { text, diffDays, targetIso };
     }
-
     function getStatusBadgeHtml(status, statusDate) {
       status = status || "Хэвийн ажиллагаатай";
       let daysPassed = 0;
@@ -2479,7 +2482,7 @@ async function loadFromStorage() {
       document.getElementById('inspectionModal').classList.add('hidden');
     };
 
-    window.handleInspectionSubmit = function(e) {
+   window.handleInspectionSubmit = function(e) {
       e.preventDefault();
 
       const issueType = document.getElementById('inspIssueType').value;
@@ -2512,7 +2515,8 @@ async function loadFromStorage() {
       const a = assets.find(x => x.journalNo === currentAssetNo);
       if (!a) return;
       if (!a.logs) a.logs = [];
-// Бичсэн сэлбэгүүдийг нэгтгэх
+
+      // Бичсэн сэлбэгүүдийг нэгтгэх
       const partsArr = [];
       document.querySelectorAll('#partsInputTableBody tr').forEach(tr => {
         const pName = tr.querySelector('.part-name')?.value.trim();
@@ -2525,7 +2529,6 @@ async function loadFromStorage() {
       const logId = document.getElementById('editInspectionLogId').value;
       const statusAfter = document.getElementById('inspStatus').value;
       const inspDate = document.getElementById('inspDate').value;
-
       const issueText = issueType === 'Гэмтэлтэй' ? `Гэмтэлтэй: ${issueDescVal}` : 'Хэвийн';
 
       if (logId) {
@@ -2536,7 +2539,7 @@ async function loadFromStorage() {
           l.statusAfter = statusAfter;
           l.issue = issueText;
           l.issueDate = issueType === 'Гэмтэлтэй' ? issueDateVal : null;
-           l.parts = partsResult;
+          l.parts = partsResult;
         }
       } else {
         a.logs.unshift({
@@ -2556,10 +2559,14 @@ async function loadFromStorage() {
         });
       }
 
-      // ТӨХӨӨРӨМЖИЙН ҮНДСЭН ТӨЛӨВИЙГ ХАМГИЙН СҮҮЛИЙН ҮЗЛЭГИЙН ТӨЛӨВӨӨР АВТОМАТААР СОЛИХ
-      a.status = statusAfter;
-      a.statusDate = inspDate;
-      logUserActivity('Үзлэг бүртгэсэн', `№${a.journalNo} (${a.model}) дээр шинэ үзлэг, үйлчилгээ бүртгэв.`);
+      // Төхөөрөмжийн үндсэн төлөвийг хамгийн сүүлийн огноотой үзлэгээр автоматаар шинэчлэх
+      const sortedLogs = [...a.logs].sort((x, y) => new Date(y.date) - new Date(x.date));
+      if (sortedLogs.length > 0) {
+        a.status = sortedLogs[0].statusAfter || 'Хэвийн ажиллагаатай';
+        a.statusDate = sortedLogs[0].date;
+      }
+
+      logUserActivity(logId ? 'Үзлэг зассан' : 'Үзлэг бүртгэсэн', `№${a.journalNo} (${a.model}) үзлэгийн мэдээлэл шинэчлэгдэв.`);
 
       saveDB();
       renderCurrentAsset();
@@ -2568,19 +2575,12 @@ async function loadFromStorage() {
       generateReport();
       closeInspectionModal();
     };
-
-    window.closeDevCategoryModal = function() {
-      document.getElementById('deviceCategoryModal').classList.add('hidden');
-    };
     window.closeExcelErrorModal = function() {
-      document.getElementById('excelErrorModal').classList.add('hidden');
-    };
-    window.closeUserGuideModal = function() {
-      document.getElementById('userGuideModal').classList.add('hidden');
-    };
-    window.closeUserMgmtModal = function() {
-      document.getElementById('userMgmtModal').classList.add('hidden');
-    };
+  document.getElementById('excelErrorModal').classList.add('hidden');
+};
+window.closeUserMgmtModal = function() {
+  document.getElementById('userMgmtModal').classList.add('hidden');
+};
 // 1. Үзлэгийн түүх харуулах функц
     function renderMaintenanceLogs(asset) {
       const tbody = document.getElementById('maintenanceTableBody');
@@ -3526,11 +3526,17 @@ async function loadFromStorage() {
 
       a.logs = a.logs.filter(x => x.id != logId);
 
-      // Сүүлийн үзлэгийн төлөвөөр хөрөнгийн үндсэн төлөвийг шинэчлэх
+      // Үлдсэн үзлэгүүдээс хамгийн сүүлийнхийг нь олж төлөвийг сэргээх
       if (a.logs.length > 0) {
-        a.status = a.logs[0].statusAfter || 'Хэвийн ажиллагаатай';
-        a.statusDate = a.logs[0].date;
+        const sorted = [...a.logs].sort((x, y) => new Date(y.date) - new Date(x.date));
+        a.status = sorted[0].statusAfter || 'Хэвийн ажиллагаатай';
+        a.statusDate = sorted[0].date;
+      } else {
+        a.status = 'Хэвийн ажиллагаатай';
+        a.statusDate = a.commissionedDate || null;
       }
+
+      logUserActivity('Үзлэг устгасан', `№${a.journalNo} (${a.model}) үзлэгийн бичиглэл устгагдав.`);
 
       saveDB();
       renderCurrentAsset();
@@ -3832,12 +3838,12 @@ async function loadFromStorage() {
       document.getElementById('activityLogModal').classList.add('hidden');
     };
     // ================= ЭХЛҮҮЛЭХ =================
-    window.addEventListener('DOMContentLoaded', () => {
-      loadFromStorage();
-      checkUrlForJournalNo();
-      startLiveClock();
-      checkAuth();
-    });
+   window.addEventListener('DOMContentLoaded', async () => {
+  await loadFromStorage();
+  checkUrlForJournalNo();
+  startLiveClock();
+  checkAuth();
+});
     // Мэдэгдлийн цонхны гадуур дарахад хаах
     document.addEventListener('click', function(e) {
       const dropdown = document.getElementById('notifDropdown');
