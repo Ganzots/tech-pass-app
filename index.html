@@ -1877,10 +1877,12 @@ async function loadFromStorage() {
       document.getElementById('excelActions').classList.toggle('hidden', !(isAdmin || isTech));
       document.getElementById('btnNewAsset').classList.toggle('hidden', !(isAdmin || isTech));
       document.getElementById('btnNewInspection').classList.toggle('hidden', !(isAdmin || isLead || isTech));
-      // ШИНЭ МӨР: Зөвхөн админд харагдуулна
+      // ШИНЭЧЛЭЛ: Админ, Ахлах, Инженер, Хяналтын ажилтан нарт "Бүртгэгдсэн төхөөрөмж" товч харагдана
       const btnAllAssets = document.getElementById('btnAllAssetsAdmin');
-      if (btnAllAssets) btnAllAssets.classList.toggle('hidden', !isAdmin);
-
+      if (btnAllAssets) {
+        const canViewAllAssets = (isAdmin || isLead || isTech || isAuditor);
+        btnAllAssets.classList.toggle('hidden', !canViewAllAssets);
+      }
       document.getElementById('signReporterName').innerText = `${currentUser.name}`;
       document.getElementById('signReporterRole').innerText = `${currentUser.roleTitle || ROLE_TITLES[currentUser.role]} (${currentUser.dept || 'МТХА'})`;
     }
@@ -3585,8 +3587,10 @@ window.openNewAssetModal = function() {
       alert('Үзлэгийн бичиглэл устгагдлаа.');
     };
    // ================= АДМИН БҮРТГЭГДСЭН ТӨХӨӨРӨМЖҮҮД УДИРДАХ ЛОГИК =================
-    window.openAllAssetsModal = function() {
+window.openAllAssetsModal = function() {
       const catSel = document.getElementById('modalAdminCatFilter');
+      const secSel = document.getElementById('modalAdminSectionFilter');
+
       if (catSel) {
         catSel.innerHTML = '<option value="ALL">Бүх ангилал (Бүгд)</option>';
         deviceCategories.forEach(c => {
@@ -3595,10 +3599,22 @@ window.openNewAssetModal = function() {
           opt.textContent = c;
           catSel.appendChild(opt);
         });
+        catSel.value = 'ALL';
       }
 
-      document.getElementById('modalAdminSectionFilter').value = 'ALL';
-      if (catSel) catSel.value = 'ALL';
+      // Эрхийн зохицуулалт: Инженер бол зөвхөн өөрийн систем дээр түгжигдэнэ
+      const isTech = currentUser && currentUser.role === 'technician';
+      if (secSel) {
+        if (isTech && currentUser.system) {
+          secSel.value = currentUser.system;
+          secSel.disabled = true;
+          secSel.classList.add('bg-slate-100', 'cursor-not-allowed');
+        } else {
+          secSel.value = 'ALL';
+          secSel.disabled = false;
+          secSel.classList.remove('bg-slate-100', 'cursor-not-allowed');
+        }
+      }
 
       renderAdminAssetsTable();
       document.getElementById('allAssetsAdminModal').classList.remove('hidden');
@@ -3620,13 +3636,25 @@ window.openNewAssetModal = function() {
       const secVal = document.getElementById('modalAdminSectionFilter').value;
       const catVal = document.getElementById('modalAdminCatFilter').value;
 
-      let filtered = assets.filter(a => {
+      const role = currentUser ? currentUser.role : 'viewer';
+      const isAdmin = role === 'admin';
+      const isLead = role === 'lead';
+      const isTech = role === 'technician';
+      const isAuditor = role === 'auditor';
+
+      // Эхний шүүлтүүр: Инженер зөвхөн өөрийн хариуцсан системээ харна
+      let baseList = assets;
+      if (isTech && currentUser.system) {
+        baseList = assets.filter(a => a.category === currentUser.system);
+      }
+
+      let filtered = baseList.filter(a => {
         const matchSec = (secVal === 'ALL') || (a.category === secVal);
         const matchCat = (catVal === 'ALL') || ((a.deviceCategory || "Сервер болон компьютер") === catVal);
         return matchSec && matchCat;
       });
 
-      if (countEl) countEl.innerText = `${filtered.length} / ${assets.length}`;
+      if (countEl) countEl.innerText = `${filtered.length} / ${baseList.length}`;
       tbody.innerHTML = '';
 
       if (filtered.length === 0) {
@@ -3634,9 +3662,30 @@ window.openNewAssetModal = function() {
         return;
       }
 
+      // Засах, устгах эрхтэй эсэх (Админ, Ахлах, Инженер эрхтэй. Хяналт эрхгүй)
+      const canManage = (isAdmin || isLead || isTech);
+
       filtered.forEach((a, idx) => {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
+
+        let actionHtml = '-';
+        if (canManage) {
+          actionHtml = `
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="adminQuickEditAsset('${a.journalNo}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer" title="Засах">
+                <i class="fa-solid fa-pen text-xs"></i>
+              </button>
+              <button onclick="adminDeleteAsset('${a.journalNo}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer" title="Устгах">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          // Хяналт (Auditor) үед үйлдлийн товчгүй, зөвхөн харах
+          actionHtml = `<span class="text-slate-400 text-[11px] italic">Зөвхөн харах</span>`;
+        }
+
         tr.innerHTML = `
           <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
           <td class="p-2.5 font-bold text-blue-700 font-mono">${a.journalNo}</td>
@@ -3651,14 +3700,7 @@ window.openNewAssetModal = function() {
             </span>
           </td>
           <td class="p-2.5 text-center">
-            <div class="flex items-center justify-center gap-1">
-              <button onclick="adminQuickEditAsset('${a.journalNo}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Засах">
-                <i class="fa-solid fa-pen text-xs"></i>
-              </button>
-              <button onclick="adminDeleteAsset('${a.journalNo}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Устгах">
-                <i class="fa-solid fa-trash-can text-xs"></i>
-              </button>
-            </div>
+            ${actionHtml}
           </td>
         `;
         tbody.appendChild(tr);
