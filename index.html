@@ -3121,23 +3121,43 @@ window.openNewAssetModal = function() {
       alert('Шинэ тоног төхөөрөмж амжилттай бүртгэгдлээ!');
     };
 
-    // ================= ХЭРЭГЛЭГЧ НЭМЭХ ЛОГИК =================
+    // ================= ХЭРЭГЛЭГЧИЙН УДИРДЛАГА (НЭМЭХ, ЗАСАХ, УСТГАХ) =================
+
+    // 1. Эрх солигдоход "Хариуцах систем" блокийг харуулах / нуух
+    window.onUserRoleChange = function(roleVal) {
+      const sysBlock = document.getElementById('systemSelectBlock');
+      if (!sysBlock) return;
+      // Инженер эсвэл Харах эрх үед систем сонгоно. Админ, Ахлах, Хяналт үед нуугдана.
+      if (roleVal === 'technician' || roleVal === 'viewer') {
+        sysBlock.classList.remove('hidden');
+      } else {
+        sysBlock.classList.add('hidden');
+      }
+    };
+
+    // 2. Хэрэглэгчдийн жагсаалт зурах (Засах, Устгах товчтой)
     window.renderUserList = function() {
       const container = document.getElementById('userListContainer');
       if (!container) return;
       container.innerHTML = '';
+      
       users.forEach(u => {
         const div = document.createElement('div');
-        div.className = 'flex justify-between items-center p-3 hover:bg-slate-50 text-xs';
+        div.className = 'flex justify-between items-center p-3 hover:bg-slate-50 text-xs transition-colors';
         div.innerHTML = `
           <div>
             <span class="font-bold text-slate-800">${u.name}</span> 
             <span class="text-slate-400">(@${u.username})</span> - 
             <span class="font-semibold text-blue-600">${ROLE_TITLES[u.role] || u.role}</span>
-            <div class="text-[11px] text-slate-500">${u.dept} | ${u.system}</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">${u.dept || '-'} | <span class="font-medium text-slate-700">${u.system || 'Бүх систем'}</span></div>
           </div>
-          <div>
-            ${u.username !== 'admin' ? `<button onclick="deleteUser(${u.id})" class="p-1 text-slate-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="editUser(${u.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer" title="Хэрэглэгч засах">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+            <button type="button" onclick="deleteUser(${u.id})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer" title="Хэрэглэгч устгах">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
           </div>
         `;
         container.appendChild(div);
@@ -3145,20 +3165,75 @@ window.openNewAssetModal = function() {
     };
 
     window.openUserMgmtModal = function() {
+      cancelUserEdit();
       renderUserList();
+      onUserRoleChange(document.getElementById('newUserRole').value);
       document.getElementById('userMgmtModal').classList.remove('hidden');
     };
 
+    // 3. Хэрэглэгчийн мэдээлэл засах горимд шилжүүлэх
+    window.editUser = function(userId) {
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+
+      document.getElementById('editUserId').value = u.id;
+      document.getElementById('userFormTitle').innerText = `✏️ "${u.name}" хэрэглэгчийн эрх засах`;
+      document.getElementById('btnSubmitUserForm').innerText = "Өөрчлөлтийг хадгалах";
+      document.getElementById('btnSubmitUserForm').className = "px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold cursor-pointer transition shadow-sm";
+      document.getElementById('btnCancelUserEdit').classList.remove('hidden');
+
+      document.getElementById('newUserLastName').value = u.lastName || '';
+      document.getElementById('newUserFirstName').value = u.firstName || '';
+      document.getElementById('newUserDept').value = u.dept || '';
+      document.getElementById('newUserRoleTitle').value = u.roleTitle || '';
+      document.getElementById('newUserUsername').value = u.username || '';
+      document.getElementById('newUserPassword').value = u.password || '';
+      document.getElementById('newUserRole').value = u.role || 'technician';
+
+      if (u.system && u.system !== 'Бүх систем') {
+        document.getElementById('newUserSystem').value = u.system;
+      }
+      onUserRoleChange(u.role || 'technician');
+    };
+
+    // 4. Засварлахаас татгалзаж шинээр нэмэх горим руу буцах
+    window.cancelUserEdit = function() {
+      const form = document.getElementById('userMgmtForm');
+      if (form) form.reset();
+      document.getElementById('editUserId').value = '';
+      document.getElementById('userFormTitle').innerText = "+ Шинэ хэрэглэгч нэмэх";
+      document.getElementById('btnSubmitUserForm').innerText = "Хэрэглэгч нэмэх";
+      document.getElementById('btnSubmitUserForm').className = "px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer transition shadow-sm";
+      document.getElementById('btnCancelUserEdit').classList.add('hidden');
+      document.getElementById('newUserRole').value = 'technician';
+      onUserRoleChange('technician');
+    };
+
+    // 5. Хэрэглэгч устгах (Админ болон бүх хэрэглэгчийг устгах боломжтой)
     window.deleteUser = function(userId) {
-      if (confirm('Энэ хэрэглэгчийг устгах уу?')) {
-        users = users.filter(u => u.id !== userId);
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+
+      if (currentUser && currentUser.id === userId) {
+        alert("Та одоо нэвтэрсэн байгаа өөрийн бүртгэлээ устгах боломжгүй!");
+        return;
+      }
+
+      if (confirm(`"${u.name}" (@${u.username}) хэрэглэгчийг устгах уу?`)) {
+        users = users.filter(x => x.id !== userId);
+        logUserActivity('Хэрэглэгч устгасан', `${u.name} (@${u.username}) хэрэглэгчийг устгав.`);
         saveDB();
         renderUserList();
+        if (document.getElementById('editUserId').value == userId) {
+          cancelUserEdit();
+        }
       }
     };
 
-    window.handleAddUser = function(e) {
+    // 6. Хэрэглэгч нэмэх / засах Form Submit
+    window.handleUserFormSubmit = function(e) {
       e.preventDefault();
+      const editId = document.getElementById('editUserId').value;
       const lastName = document.getElementById('newUserLastName').value.trim();
       const firstName = document.getElementById('newUserFirstName').value.trim();
       const username = document.getElementById('newUserUsername').value.trim();
@@ -3166,31 +3241,58 @@ window.openNewAssetModal = function() {
       const dept = document.getElementById('newUserDept').value.trim();
       const roleTitle = document.getElementById('newUserRoleTitle').value.trim();
       const role = document.getElementById('newUserRole').value;
-      const system = document.getElementById('newUserSystem').value;
 
-      if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        alert('Энэ нэвтрэх нэр бүртгэлтэй байна!');
+      // ЛОГИК: Ахлах, Хяналт, Админ бол шууд "Бүх систем" эрх авна. Бусад нь сонгосон системийг авна.
+      let assignedSystem = "Бүх систем";
+      if (role === 'technician' || role === 'viewer') {
+        assignedSystem = document.getElementById('newUserSystem').value;
+      }
+
+      // Нэвтрэх нэр давхардаж байгааг шалгах
+      const isDuplicate = users.some(u => u.username.toLowerCase() === username.toLowerCase() && String(u.id) !== String(editId));
+      if (isDuplicate) {
+        alert('Энэ нэвтрэх нэр аль хэдийн бүртгэгдсэн байна!');
         return;
       }
 
-      const newUser = {
-        id: Date.now(),
-        lastName,
-        firstName,
-        name: `${lastName.charAt(0)}.${firstName}`,
-        username,
-        password,
-        role,
-        system,
-        dept,
-        roleTitle
-      };
+      if (editId) {
+        // ХУУЧИН ХЭРЭГЛЭГЧИЙГ ЗАСАХ
+        const u = users.find(x => x.id == editId);
+        if (u) {
+          u.lastName = lastName;
+          u.firstName = firstName;
+          u.name = `${lastName.charAt(0)}.${firstName}`;
+          u.username = username;
+          u.password = password;
+          u.role = role;
+          u.system = assignedSystem;
+          u.dept = dept;
+          u.roleTitle = roleTitle;
+          logUserActivity('Хэрэглэгч зассан', `${u.name} (@${u.username}) мэдээлэл шинэчлэгдэв.`);
+          alert('Хэрэглэгчийн мэдээлэл амжилттай засагдлаа!');
+        }
+      } else {
+        // ШИНЭ ХЭРЭГЛЭГЧ НЭМЭХ
+        const newUser = {
+          id: Date.now(),
+          lastName,
+          firstName,
+          name: `${lastName.charAt(0)}.${firstName}`,
+          username,
+          password,
+          role,
+          system: assignedSystem,
+          dept,
+          roleTitle
+        };
+        users.push(newUser);
+        logUserActivity('Хэрэглэгч нэмсэн', `${newUser.name} (@${newUser.username}) шинээр бүртгэгдэв.`);
+        alert('Шинэ хэрэглэгч амжилттай бүртгэгдлээ!');
+      }
 
-      users.push(newUser);
       saveDB();
       renderUserList();
-      e.target.reset();
-      alert('Шинэ хэрэглэгч амжилттай бүртгэгдлээ!');
+      cancelUserEdit();
     };
     // ================= ӨГӨГДЛИЙГ БҮРЭН НӨӨЦЛӨХ (BACKUP) БА СЭРГЭЭХ (RESTORE) =================
 
