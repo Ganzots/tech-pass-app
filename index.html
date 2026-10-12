@@ -3000,23 +3000,16 @@ window.closeUserMgmtModal = function() {
       if (panel) panel.classList.toggle('hidden');
     };
 
-    // 4. Зааварчилгаа болон Хэрэглэгчийн модал нээх функцүүд
-    window.openUserGuideModal = function() {
-      // Зааварчилгаа нээх функц
+   // 4. Зааварчилгаа нээх / хаах функцүүд
     window.openUserGuideModal = function() {
       const modal = document.getElementById('userGuideModal');
       if (modal) modal.classList.remove('hidden');
     };
 
-    // Зааварчилгаа хаах функц (Хаах товч ажиллах баталгаа)
     window.closeUserGuideModal = function() {
       const modal = document.getElementById('userGuideModal');
       if (modal) modal.classList.add('hidden');
     };
-      document.getElementById('userGuideModal').classList.remove('hidden');
-    };
-  
-    /* ===== ЭНД ХҮРТЭЛ ОРУУЛААД ДУУСНА ===== */
 // ================= ТӨХӨӨРӨМЖ НЭМЭХ ЛОГИК =================
 window.openNewAssetModal = function() {
       const modal = document.getElementById('newAssetModal');
