@@ -3904,7 +3904,9 @@ window.openAllAssetsModal = function() {
       const isAdmin = role === 'admin';
       const isLead = role === 'lead';
       const isTech = role === 'technician';
+      const isAuditor = role === 'auditor';
 
+      // Эхний шүүлтүүр: Инженер зөвхөн өөрийн хариуцсан системээ харна
       let baseList = assets;
       if (isTech && currentUser.system) {
         baseList = assets.filter(a => a.category === currentUser.system);
@@ -3924,9 +3926,10 @@ window.openAllAssetsModal = function() {
         return;
       }
 
+      // Засах, устгах эрхтэй эсэх
       const canManage = (isAdmin || isLead || isTech);
       
-      // Хурдасгасан хэсэг: DocumentFragment ашигласан
+      // ОНОВЧЛОЛ: DocumentFragment ашиглаж хүснэгтийг санах ойд зурж бэлтгэнэ
       const fragment = document.createDocumentFragment(); 
 
       filtered.forEach((a, idx) => {
@@ -3962,14 +3965,16 @@ window.openAllAssetsModal = function() {
               ${a.status || 'Хэвийн'}
             </span>
           </td>
-          <td class="p-2.5 text-center">${actionHtml}</td>
+          <td class="p-2.5 text-center">
+            ${actionHtml}
+          </td>
         `;
         fragment.appendChild(tr);
       });
       
-      tbody.appendChild(fragment);
+      // Хүснэгтийг ганцхан удаа DOM руу оруулна (Гацалт арилна)
+      tbody.appendChild(fragment); 
     }
-
     // Төхөөрөмж засах цонх нээх
     window.adminQuickEditAsset = function(journalNo) {
       const a = assets.find(x => x.journalNo === journalNo);
