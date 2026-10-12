@@ -53,7 +53,7 @@
           </div>
         </div>
 
-        <!-- Нууц үг (Eye icon-той) -->
+        <!-- Нууц үг -->
         <div>
           <label class="block font-bold text-slate-700 mb-1.5 ml-0.5">Нууц үг</label>
           <div class="relative">
@@ -121,7 +121,7 @@
         <span class="text-slate-600 font-bold">|</span>
         <div class="flex items-center gap-1.5 text-blue-300 font-medium">
           <i class="fa-regular fa-calendar-days text-slate-400"></i>
-          <span id="liveDateText">2026.10.09 (Баасан)</span>
+          <span id="liveDateText">--.--.--</span>
         </div>
         <span class="text-slate-600 font-bold">|</span>
         <div class="flex items-center gap-1.5 text-indigo-300 font-mono font-bold">
@@ -156,7 +156,7 @@
               <span class="font-bold text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-bell text-blue-600"></i> Мэдэгдлүүд</span>
               <span id="notifCountText" class="text-[11px] text-slate-500 font-medium">0 шинэ</span>
             </div>
-            <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></div>
+            <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-slate-100 p-2"></div>
           </div>
         </div>
 
@@ -401,7 +401,6 @@
             </div>
           </div>
 
-          <!-- Дараагийн үзлэг хийх хугацаа -->
           <div class="flex items-center gap-3 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 shadow-2xs sm:col-span-2 lg:col-span-1">
             <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm flex-shrink-0">
               <i class="fa-solid fa-calendar-days"></i>
@@ -613,7 +612,7 @@
             <button onclick="generateReport()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer">
               <i class="fa-solid fa-magnifying-glass"></i> Тайлан харах
             </button>
-            <button onclick="printReportDirectly()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap shadow-sm">
+            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap shadow-sm">
               <i class="fa-solid fa-print"></i> Хэвлэх
             </button>
           </div>
@@ -706,7 +705,9 @@
 
   </div>
 
-  <!-- ================= 3. ҮЗЛЭГ БҮРТГЭХ & ЗАСАХ МОДАЛ ================= -->
+  <!-- ================= 3. МОДАЛУУД ================= -->
+
+  <!-- ҮЗЛЭГ БҮРТГЭХ МОДАЛ -->
   <div id="inspectionModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -841,7 +842,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: ШИНЭ ТӨХӨӨРӨМЖ БҮРТГЭХ -->
+  <!-- ШИНЭ ТӨХӨӨРӨМЖ БҮРТГЭХ МОДАЛ -->
   <div id="newAssetModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-7 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto border border-slate-100">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -940,6 +941,7 @@
           </div>
         </div>
 
+        <!-- Үзүүлэлт нэмэх хүснэгт -->
         <div class="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3">
           <div class="flex items-center justify-between">
             <span class="font-extrabold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
@@ -966,6 +968,7 @@
           </div>
         </div>
 
+        <!-- Иж бүрдэл нэмэх хүснэгт -->
         <div class="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3">
           <div class="flex items-center justify-between">
             <span class="font-extrabold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
@@ -1004,11 +1007,11 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: АУДИТ ТАЙЛБАР -->
+  <!-- АУДИТ ТАЙЛБАР МОДАЛ -->
   <div id="auditModal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-        <h3 class="text-sm font-bold text-slate-900" id="auditModalTitle">Хяналтын дүгнэлт / Тайлбар</h3>
+        <h3 class="text-sm font-bold text-slate-900">Хяналтын дүгнэлт / Тайлбар</h3>
         <button onclick="closeAuditModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form onsubmit="handleAuditSubmit(event)" class="space-y-3 text-xs">
@@ -1025,7 +1028,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: АНГИЛАЛ УДИРДАХ -->
+  <!-- АНГИЛАЛ УДИРДАХ МОДАЛ -->
   <div id="deviceCategoryModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-2 border-b border-slate-100">
@@ -1054,141 +1057,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: EXCEL ИМПОРТЫН АЛДАА ХАРУУЛАХ ЦОНХ -->
-  <div id="excelErrorModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2.5 text-rose-600">
-          <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">Excel импортын шалгалтын алдаа</h3>
-            <p class="text-xs text-slate-500">Алдаатай мөрүүдийг оруулаагүй ба зөв өгөгдлүүд амжилттай нэмэгдсэн</p>
-          </div>
-        </div>
-        <button onclick="closeExcelErrorModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
-        Дараах мөрүүдэд өгөгдлийн давхардал эсвэл дутуу талбар илэрсэн тул алгаслаа. Та Excel файлаа шалгаад дахин оролдоно уу:
-      </div>
-
-      <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden max-h-60 overflow-y-auto" id="excelErrorList"></div>
-
-      <div class="text-right pt-2 border-t border-slate-100">
-        <button type="button" onclick="closeExcelErrorModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold cursor-pointer">Ойлголоо, хаах</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- МОДАЛ: ЗААВАРЧИЛГАА -->
-  <div id="userGuideModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-opacity">
-    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-slate-100">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg border border-blue-100">
-            <i class="fa-solid fa-book-open"></i>
-          </div>
-          <div>
-            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Системийн хэрэглэх зааварчилгаа</h3>
-            <p class="text-xs text-slate-400">Хэрэглэгчийн үүрэг хариуцлага ба ажлын урсгалын дараалал</p>
-          </div>
-        </div>
-        <button type="button" onclick="closeUserGuideModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer">
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
-      </div>
-
-      <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 p-5 rounded-2xl border border-blue-100/80 space-y-3">
-        <span class="text-xs font-black uppercase tracking-wider text-blue-900 block flex items-center gap-1.5">
-          <i class="fa-solid fa-diagram-project text-blue-600"></i> Үзлэг, засвар үйлчилгээний баталгаажуулалтын шат дамжлага:
-        </span>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
-          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1 relative">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">1-р шат</span>
-              <i class="fa-solid fa-screwdriver-wrench text-amber-600 text-sm"></i>
-            </div>
-            <strong class="text-xs text-slate-900 block">Инженер үзлэг оруулах</strong>
-            <p class="text-[11px] text-slate-500 leading-relaxed">Хариуцсан системийн төхөөрөмж дээр үзлэг, үйлчилгээ, солигдсон сэлбэг, төлөвийг бүртгэнэ.</p>
-          </div>
-
-          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1 relative">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">2-р шат</span>
-              <i class="fa-solid fa-clipboard-check text-emerald-600 text-sm"></i>
-            </div>
-            <strong class="text-xs text-slate-900 block">Ахлах ажилтан батлах</strong>
-            <p class="text-[11px] text-slate-500 leading-relaxed">Инженерийн оруулсан ажлыг шалгаад "Батлах" товч дарж баталгаажуулна (эсвэл цуцална).</p>
-          </div>
-
-          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1 relative">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">3-р шат</span>
-              <i class="fa-solid fa-stamp text-purple-600 text-sm"></i>
-            </div>
-            <strong class="text-xs text-slate-900 block">Хяналтын ажилтан танилцах</strong>
-            <p class="text-[11px] text-slate-500 leading-relaxed">Ахлахын баталсан ажлыг хянаж "Танилцав" эсвэл "Шаардлага хангаагүй" дүгнэлт өгнө.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <span class="text-xs font-bold text-slate-700 block ml-0.5">Хэрэглэгчийн үүрэг, хариуцлага:</span>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">⚙️</span>
-              <strong class="text-amber-800 font-extrabold text-xs">Инженер (technician):</strong>
-            </div>
-            <p class="text-slate-600 leading-relaxed text-[11px]">Зөвхөн хариуцсан системийн төхөөрөмжөө бүртгэх, үзлэг хөтлөх, тайлан шүүх, жагсаалт удирдах (засах/устгах) эрхтэй. Бусад хэсгийн ажилд хандахгүй.</p>
-          </div>
-
-          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">✍️</span>
-              <strong class="text-emerald-800 font-extrabold text-xs">Ахлах ажилтан (lead):</strong>
-            </div>
-            <p class="text-slate-600 leading-relaxed text-[11px]">Бүх системийн төхөөрөмж, тайланг бүрэн харах, засах, устгах эрхтэй. Инженерүүдийн үзлэгийг шалгаж <strong>Батлах</strong> эрхтэй.</p>
-          </div>
-
-          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">🔍</span>
-              <strong class="text-purple-800 font-extrabold text-xs">Хяналтын ажилтан (auditor):</strong>
-            </div>
-            <p class="text-slate-600 leading-relaxed text-[11px]">Бүх төхөөрөмж болон баталгаажсан үзлэгүүдийг хянах, <strong>аудитын дүгнэлт бичих</strong>, танилцах эрхтэй. Төхөөрөмжийг устгах, засах эрхгүй (Зөвхөн харах).</p>
-          </div>
-
-          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">👑</span>
-              <strong class="text-blue-800 font-extrabold text-xs">Админ (admin):</strong>
-            </div>
-            <p class="text-slate-600 leading-relaxed text-[11px]">Бүх системийн мэдээлэл, ангилал, үйлдлийн түүх (Audit Log) болон хэрэглэгчдийг бүртгэх, эрхийг нь засах, устгах бүрэн удирдлагатай.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        <div class="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-1">
-          <strong class="text-blue-900 block font-bold text-[11px]"><i class="fa-solid fa-qrcode text-blue-600 mr-1"></i> QR код & Шошго:</strong>
-          <p class="text-slate-600 text-[11px] leading-relaxed">Төхөөрөмж бүрийн цахим паспортыг гар утасны камераар уншуулж нээх тусгай шошгыг хэвлэх боломжтой.</p>
-        </div>
-        <div class="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1">
-          <strong class="text-emerald-900 block font-bold text-[11px]"><i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-1"></i> Google Sheets синхрончлол:</strong>
-          <p class="text-slate-600 text-[11px] leading-relaxed">Оруулсан бүх төхөөрөмж, үзлэг засварууд Google Sheets бааз руу автоматаар онлайн хадгалагдаж нөөцлөгдөнө.</p>
-        </div>
-      </div>
-
-      <div class="text-right pt-3 border-t border-slate-100">
-        <button type="button" onclick="closeUserGuideModal()" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm">
-          Ойлголоо, хаах
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ШИНЭ МОДАЛ: БҮРТГЭГДСЭН БҮХ ТӨХӨӨРӨМЖҮҮД -->
+  <!-- БҮРТГЭГДСЭН БҮХ ТӨХӨӨРӨМЖИЙН ЖАГСААЛТ МОДАЛ -->
   <div id="allAssetsAdminModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-5xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -1254,7 +1123,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: ТӨХӨӨРӨМЖИЙН МЭДЭЭЛЭЛ ЗАСВАРЛАХ -->
+  <!-- ТӨХӨӨРӨМЖ ЗАСВАРЛАХ МОДАЛ -->
   <div id="adminEditAssetModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60]">
     <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -1346,7 +1215,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: ТӨХӨӨРӨМЖИЙН ШОШГО / QR ХЭВЛЭХ -->
+  <!-- QR ХЭВЛЭХ МОДАЛ -->
   <div id="qrPrintModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-slate-100">
@@ -1360,7 +1229,7 @@
 
       <div id="printableLabelCard" class="p-4 bg-white border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center text-center space-y-2">
         <span class="text-[9px] uppercase tracking-wider font-extrabold text-slate-500">Тоног төхөөрөмжийн паспорт</span>
-        <div id="modalQrCodeContainer" class="p-2 bg-white rounded-xl border border-slate-200"></div>
+        <div id="modalQrCodeContainer" class="p-2 bg-white rounded-xl border border-slate-200 flex justify-center"></div>
         <div class="space-y-0.5">
           <div class="font-mono font-black text-sm text-blue-700" id="lblJournalNo">-</div>
           <div class="font-bold text-xs text-slate-800 truncate max-w-[220px]" id="lblModel">-</div>
@@ -1377,7 +1246,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: СИСТЕМИЙН ҮЙЛДЛИЙН ТҮҮХ (AUDIT LOG) -->
+  <!-- АУДИТ ТҮҮХ (ACTIVITY LOG) МОДАЛ -->
   <div id="activityLogModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -1415,7 +1284,7 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: АДМИН ХЭРЭГЛЭГЧИД -->
+  <!-- ХЭРЭГЛЭГЧИД УДИРДАХ МОДАЛ -->
   <div id="userMgmtModal" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
       <div class="flex justify-between items-center pb-2 border-b border-slate-100">
@@ -1477,6 +1346,55 @@
     </div>
   </div>
 
+  <!-- ЗААВАРЧИЛГАА МОДАЛ -->
+  <div id="userGuideModal" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-opacity">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-slate-100">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg border border-blue-100">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Системийн хэрэглэх зааварчилгаа</h3>
+            <p class="text-xs text-slate-400">Хэрэглэгчийн үүрэг хариуцлага ба ажлын урсгалын дараалал</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeUserGuideModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 p-5 rounded-2xl border border-blue-100/80 space-y-3">
+        <span class="text-xs font-black uppercase tracking-wider text-blue-900 block flex items-center gap-1.5">
+          <i class="fa-solid fa-diagram-project text-blue-600"></i> Үзлэг, засвар үйлчилгээний баталгаажуулалтын шат дамжлага:
+        </span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">1-р шат</span>
+            <strong class="text-xs text-slate-900 block">Инженер үзлэг оруулах</strong>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Хариуцсан системийн төхөөрөмж дээр үзлэг, үйлчилгээ, сэлбэг, төлөвийг бүртгэнэ.</p>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">2-р шат</span>
+            <strong class="text-xs text-slate-900 block">Ахлах ажилтан батлах</strong>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Инженерийн оруулсан ажлыг шалгаад "Батлах" товч дарж баталгаажуулна.</p>
+          </div>
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1">
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">3-р шат</span>
+            <strong class="text-xs text-slate-900 block">Хяналтын ажилтан танилцах</strong>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Ахлахын баталсан ажлыг хянаж аудитын дүгнэлт өгнө.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-right pt-3 border-t border-slate-100">
+        <button type="button" onclick="closeUserGuideModal()" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm">
+          Ойлголоо, хаах
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= JAVASCRIPT ҮНДСЭН КОД ================= -->
   <script>
     const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxe0TiQVCx1L0a3Zk0ymhd7DJe5gGnNuKyDoJa8WOx9owj3T8TmeAfmVKg7dtLkFSY/exec";
@@ -1510,9 +1428,9 @@
       { id: 4, lastName: 'Алтангэрэл', firstName: 'Инженер', name: 'А.Инженер', username: 'engineer', password: 'eng123', role: 'technician', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын инженер' }
     ];
 
-    let users = MASTER_USERS;
+    let users = [...MASTER_USERS];
     let currentUser = null;
-    let deviceCategories = DEFAULT_DEVICE_CATEGORIES;
+    let deviceCategories = [...DEFAULT_DEVICE_CATEGORIES];
 
     const INITIAL_ASSETS = [
       {
@@ -1622,14 +1540,13 @@
       }
     ];
 
-    let assets = INITIAL_ASSETS;
+    let assets = [...INITIAL_ASSETS];
     let currentAssetNo = "201402001";
     let selectedSectionFilter = "ALL";
     let selectedDeviceCatFilter = "ALL";
     let systemAuditLogs = [];
     let assetSearchQuery = "";
 
-    // САЙЖРУУЛАЛТ: Текст дэх HTML тусгай тэмдэгтүүдийг аюулгүй болгох (XSS Protection)
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -1659,7 +1576,6 @@
     }
 
     async function loadFromStorage() {
-      // 1. Эхлээд local cache-ээс түргэн ачаална
       try {
         const u = localStorage.getItem('sys_users_v30');
         if (u) users = JSON.parse(u);
@@ -1675,47 +1591,40 @@
         console.warn('Storage read error.');
       }
 
-      // ХАМГААЛАЛТ 1: Хөтчийн санах ойд admin байхгүй бол анхны admin-ийг хүчээр оруулах
-      if (!users.some(u => u.username && u.username.toLowerCase() === 'admin')) {
-        const defaultAdmin = MASTER_USERS.find(u => u.username === 'admin');
-        if (defaultAdmin) users.unshift(defaultAdmin);
-      }
+      // Админ байхгүй бол хүчээр нэмэх
+      MASTER_USERS.forEach(mu => {
+        if (!users.some(u => u.username && u.username.toLowerCase() === mu.username.toLowerCase())) {
+          users.push(mu);
+        }
+      });
 
-      // 2. Google Sheets-ээс сүүлийн үеийн бодит өгөгдлийг татах
       if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
         try {
           const res = await fetch(GOOGLE_SHEET_API_URL);
           const data = await res.json();
-          
           if (data.users && data.users.length > 0) {
             users = data.users;
-
-            // ХАМГААЛАЛТ 2: Google Sheets дээр admin байхгүй байсан ч кодон дээрх admin-ийг алдахгүй нэмэх
-            if (!users.some(u => u.username && u.username.toLowerCase() === 'admin')) {
-              const defaultAdmin = MASTER_USERS.find(u => u.username === 'admin');
-              if (defaultAdmin) users.unshift(defaultAdmin);
-            }
-
+            MASTER_USERS.forEach(mu => {
+              if (!users.some(u => u.username && u.username.toLowerCase() === mu.username.toLowerCase())) {
+                users.push(mu);
+              }
+            });
             localStorage.setItem('sys_users_v30', JSON.stringify(users));
           }
           if (data.assets && data.assets.length > 0) {
             assets = data.assets;
             localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
           }
-
-          // Дэлгэцийг шинэчлэх
-          initSectionFilterSelector();
-          initAssetSelector();
-          renderCurrentAsset();
-          renderDashboardMetrics();
-          renderNotifications();
         } catch (err) {
-          console.warn("Google Sheets-ээс өгөгдөл татахад алдаа гарлаа (Офлайн өгөгдлийг ашиглаж байна):", err);
+          console.warn("Google Sheets холболт:", err);
         }
       }
 
       assets.forEach(a => {
         if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
+        if (!Array.isArray(a.specs)) a.specs = [];
+        if (!Array.isArray(a.accessories)) a.accessories = [];
+        if (!Array.isArray(a.logs)) a.logs = [];
       });
     }
 
@@ -1726,7 +1635,6 @@
       if (!badge || !icon || !textEl) return;
 
       badge.classList.remove('hidden');
-
       if (status === 'syncing') {
         badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-amber-950/40 border border-amber-500/40 text-amber-300";
         icon.className = "fa-solid fa-arrows-rotate fa-spin text-amber-400";
@@ -1738,11 +1646,10 @@
       } else if (status === 'error') {
         badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-rose-950/40 border border-rose-500/40 text-rose-300";
         icon.className = "fa-solid fa-cloud-slash text-rose-400";
-        textEl.innerText = text || "Сүлжээ тасарсан (Офлайн хадгалав)";
+        textEl.innerText = text || "Сүлжээ тасарсан (Офлайн)";
       }
     }
 
-    // САЙЖРУУЛАЛТ: Олон дараалсан дуудлагыг оновчтой болгож debounce хийх
     let saveTimeout = null;
     function saveDB() {
       try {
@@ -1763,80 +1670,29 @@
         updateSyncStatus('syncing', 'Хадгалж байна...');
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-          const payload = JSON.stringify({
-            action: "saveAll",
-            users: users,
-            assets: assets
-          });
-
           fetch(GOOGLE_SHEET_API_URL, {
             method: "POST",
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: payload
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "saveAll", users, assets })
           })
           .then(res => res.json())
-          .then(data => {
+          .then(() => {
             updateSyncStatus('synced', 'Бүрэн хадгалагдсан');
-            setTimeout(() => {
-              updateSyncStatus('synced', 'Холбогдсон');
-            }, 4000);
+            setTimeout(() => updateSyncStatus('synced', 'Холбогдсон'), 4000);
           })
-          .catch(err => {
-            console.warn("Google Sheets рүү хадгалах явцад анхааруулга гарлаа:", err);
-            updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
-          });
+          .catch(() => updateSyncStatus('error', 'Офлайн хадгалав'));
         }, 500);
       }
     }
 
-    // ================= 10 МИНУТЫН ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР =================
+    // Идэвхгүй байдлын тоолуур (10 минут)
     const SESSION_DURATION_SECONDS = 10 * 60;
     let sessionRemainingSeconds = SESSION_DURATION_SECONDS;
     let sessionIntervalId = null;
-    let lastActivityTimestamp = Date.now();
 
-    function onUserActivity() {
-      const now = Date.now();
-      if (now - lastActivityTimestamp > 1000) {
-        lastActivityTimestamp = now;
-        sessionRemainingSeconds = SESSION_DURATION_SECONDS;
-        updateSessionDisplay();
-      }
-    }
-
-    function attachActivityListeners() {
-      const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
-      events.forEach(evt => window.addEventListener(evt, onUserActivity, { passive: true }));
-    }
-
-    function detachActivityListeners() {
-      const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
-      events.forEach(evt => window.removeEventListener(evt, onUserActivity));
-    }
-
-    function startSessionTimer() {
-      if (sessionIntervalId) clearInterval(sessionIntervalId);
+    function resetSessionTimer() {
       sessionRemainingSeconds = SESSION_DURATION_SECONDS;
-      lastActivityTimestamp = Date.now();
       updateSessionDisplay();
-
-      attachActivityListeners();
-
-      sessionIntervalId = setInterval(() => {
-        sessionRemainingSeconds--;
-        updateSessionDisplay();
-
-        if (sessionRemainingSeconds <= 0) {
-          clearInterval(sessionIntervalId);
-          detachActivityListeners();
-          alert('10 минут ямар ч үйлдэл хийгдээгүй тул аюулгүй байдлын үүднээс системээс гарлаа.');
-          currentUser = null;
-          saveDB();
-          checkAuth();
-        }
-      }, 1000);
     }
 
     function updateSessionDisplay() {
@@ -1847,23 +1703,28 @@
       timerEl.innerText = `${mm}:${ss}`;
     }
 
-    window.resetSessionTimer = function() {
+    function startSessionTimer() {
+      if (sessionIntervalId) clearInterval(sessionIntervalId);
       sessionRemainingSeconds = SESSION_DURATION_SECONDS;
-      lastActivityTimestamp = Date.now();
       updateSessionDisplay();
-    };
+      sessionIntervalId = setInterval(() => {
+        sessionRemainingSeconds--;
+        updateSessionDisplay();
+        if (sessionRemainingSeconds <= 0) {
+          clearInterval(sessionIntervalId);
+          alert('10 минут идэвхгүй байсан тул системээс гарлаа.');
+          handleLogout();
+        }
+      }, 1000);
+    }
 
     function stopSessionTimer() {
-      if (sessionIntervalId) {
-        clearInterval(sessionIntervalId);
-        sessionIntervalId = null;
-      }
-      detachActivityListeners();
+      if (sessionIntervalId) clearInterval(sessionIntervalId);
     }
 
     function startLiveClock() {
       const dayNames = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
-      function update() {
+      setInterval(() => {
         const now = new Date();
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -1877,9 +1738,72 @@
         const clockEl = document.getElementById('liveClockText');
         if (dateEl) dateEl.innerText = `${y}.${m}.${d} (${dayStr})`;
         if (clockEl) clockEl.innerText = `${hh}:${mm}:${ss}`;
+      }, 1000);
+    }
+
+    // ================= НЭВТРЭХ & ГАРАХ ЛОГИК =================
+    window.togglePasswordVisibility = function() {
+      const pwd = document.getElementById('loginPassword');
+      const eye = document.getElementById('eyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        eye.className = 'fa-regular fa-eye-slash text-xs text-blue-600';
+      } else {
+        pwd.type = 'password';
+        eye.className = 'fa-regular fa-eye text-xs text-slate-400';
       }
-      update();
-      setInterval(update, 1000);
+    };
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const u = (document.getElementById('loginUsername')?.value || '').trim().toLowerCase();
+      const p = (document.getElementById('loginPassword')?.value || '').trim();
+      const rememberMe = document.getElementById('chkRememberMe')?.checked;
+
+      let searchPool = Array.isArray(users) && users.length > 0 ? [...users] : [];
+      MASTER_USERS.forEach(mu => {
+        if (!searchPool.some(su => su.username && su.username.toLowerCase() === mu.username.toLowerCase())) {
+          searchPool.push(mu);
+        }
+      });
+
+      const found = searchPool.find(usr => 
+        usr.username && 
+        usr.username.toLowerCase() === u && 
+        String(usr.password).trim() === p
+      );
+
+      if (found) {
+        currentUser = Object.assign({}, found);
+        document.getElementById('loginError')?.classList.add('hidden');
+
+        if (!users.some(item => item.username.toLowerCase() === found.username.toLowerCase())) {
+          users.push(currentUser);
+        }
+
+        if (rememberMe) {
+          localStorage.setItem('saved_login_username', found.username);
+        } else {
+          localStorage.removeItem('saved_login_username');
+        }
+
+        const pwdInput = document.getElementById('loginPassword');
+        if (pwdInput) pwdInput.value = '';
+
+        logUserActivity('Нэвтрэлт', 'Системд амжилттай нэвтэрлээ.');
+        saveDB();
+        checkAuth();
+      } else {
+        document.getElementById('loginError')?.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      stopSessionTimer();
+      logUserActivity('Гарах', 'Системээс гарлаа.');
+      currentUser = null;
+      localStorage.removeItem('current_logged_user_v30');
+      checkAuth();
     }
 
     function checkAuth() {
@@ -1897,7 +1821,6 @@
         renderCurrentAsset();
         renderDashboardMetrics();
         renderNotifications();
-        generateReport();
         switchTab('passport');
       } else {
         loginScreen.classList.remove('hidden');
@@ -1905,107 +1828,10 @@
       }
     }
 
-    window.quickLogin = function(usernameKey) {
-      let found = MASTER_USERS.find(u => u.username.toLowerCase() === usernameKey.toLowerCase());
-      if (found) {
-        currentUser = Object.assign({}, found);
-        if (!users.some(u => u.username === found.username)) {
-          users.push(currentUser);
-        }
-        document.getElementById('loginError').classList.add('hidden');
-        saveDB();
-        checkAuth();
-      }
-    };
-
-    window.togglePasswordVisibility = function() {
-      const pwdInput = document.getElementById('loginPassword');
-      const eyeIcon = document.getElementById('eyeIcon');
-      if (!pwdInput || !eyeIcon) return;
-
-      if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        eyeIcon.className = 'fa-regular fa-eye-slash text-xs text-blue-600';
-      } else {
-        pwdInput.type = 'password';
-        eyeIcon.className = 'fa-regular fa-eye text-xs text-slate-400';
-      }
-    };
-
-    function handleLoginSubmit(e) {
-      e.preventDefault();
-      const u = document.getElementById('loginUsername').value.trim().toLowerCase();
-      const p = document.getElementById('loginPassword').value.trim();
-      const rememberMe = document.getElementById('chkRememberMe')?.checked;
-
-      // Хэрэглэгчийн жагсаалт хоосон эсвэл асуудалтай байвал MASTER_USERS-ээс шалгах найдвартай логик:
-      const userList = (users && users.length > 0) ? users : MASTER_USERS;
-      
-      const found = userList.find(user => 
-        (user.username && user.username.toLowerCase() === u) && 
-        String(user.password).trim() === p
-      );
-
-      if (found) {
-        currentUser = found;
-        document.getElementById('loginError').classList.add('hidden');
-
-        if (rememberMe) {
-          localStorage.setItem('saved_login_username', document.getElementById('loginUsername').value.trim());
-        } else {
-          localStorage.removeItem('saved_login_username');
-        }
-
-        const pwdInput = document.getElementById('loginPassword');
-        if (pwdInput) {
-          pwdInput.value = '';
-          pwdInput.type = 'password';
-        }
-        const eye = document.getElementById('eyeIcon');
-        if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
-
-        saveDB();
-        checkAuth();
-      } else {
-        document.getElementById('loginError').classList.remove('hidden');
-      }
-    }
-
-    function handleLogout() {
-      stopSessionTimer();
-      currentUser = null;
-
-      const pwdInput = document.getElementById('loginPassword');
-      if (pwdInput) {
-        pwdInput.value = '';
-        pwdInput.type = 'password';
-      }
-      const eye = document.getElementById('eyeIcon');
-      if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
-
-      const userInput = document.getElementById('loginUsername');
-      const savedUser = localStorage.getItem('saved_login_username');
-      if (userInput) {
-        if (savedUser) {
-          userInput.value = savedUser;
-          const chk = document.getElementById('chkRememberMe');
-          if (chk) chk.checked = true;
-        } else {
-          userInput.value = '';
-          const chk = document.getElementById('chkRememberMe');
-          if (chk) chk.checked = false;
-        }
-      }
-
-      document.getElementById('loginError')?.classList.add('hidden');
-      saveDB();
-      checkAuth();
-    }
-
     function applyUserPermissions() {
       if (!currentUser) return;
-      document.getElementById('currentUserName').innerText = currentUser.name;
-      document.getElementById('currentUserRoleTitle').innerText = ROLE_TITLES[currentUser.role];
+      document.getElementById('currentUserName').innerText = currentUser.name || currentUser.username;
+      document.getElementById('currentUserRoleTitle').innerText = ROLE_TITLES[currentUser.role] || currentUser.role;
 
       const isAdmin = currentUser.role === 'admin';
       const isLead = currentUser.role === 'lead';
@@ -2019,63 +1845,619 @@
         sysBadge.innerText = currentUser.system || 'Тоолуурын нэгдсэн систем';
       }
 
-      document.getElementById('btnUserMgmt').classList.toggle('hidden', !isAdmin);
-      const btnActivity = document.getElementById('btnActivityLog');
-      if (btnActivity) btnActivity.classList.toggle('hidden', !isAdmin);
-      document.getElementById('btnManageDevCategories').classList.toggle('hidden', !isAdmin);
-      document.getElementById('excelActions').classList.toggle('hidden', !(isAdmin || isTech));
-      document.getElementById('btnNewAsset').classList.toggle('hidden', !(isAdmin || isTech));
-      document.getElementById('btnNewInspection').classList.toggle('hidden', !(isAdmin || isLead || isTech));
+      document.getElementById('btnUserMgmt')?.classList.toggle('hidden', !isAdmin);
+      document.getElementById('btnActivityLog')?.classList.toggle('hidden', !isAdmin);
+      document.getElementById('btnManageDevCategories')?.classList.toggle('hidden', !isAdmin);
+      document.getElementById('excelActions')?.classList.toggle('hidden', !(isAdmin || isTech));
+      document.getElementById('btnNewAsset')?.classList.toggle('hidden', !(isAdmin || isTech));
+      document.getElementById('btnNewInspection')?.classList.toggle('hidden', !(isAdmin || isLead || isTech));
+      document.getElementById('btnAllAssetsAdmin')?.classList.toggle('hidden', !(isAdmin || isLead || isTech || isAuditor));
 
-      const btnAllAssets = document.getElementById('btnAllAssetsAdmin');
-      if (btnAllAssets) {
-        const canViewAllAssets = (isAdmin || isLead || isTech || isAuditor);
-        btnAllAssets.classList.toggle('hidden', !canViewAllAssets);
-      }
-      document.getElementById('signReporterName').innerText = `${currentUser.name}`;
+      document.getElementById('signReporterName').innerText = currentUser.name || '';
       document.getElementById('signReporterRole').innerText = `${currentUser.roleTitle || ROLE_TITLES[currentUser.role]} (${currentUser.dept || 'МТХА'})`;
     }
 
+    // ================= ДЭЛГЭЦИЙН ӨГӨГДӨЛ БОЛОН ТАБ УДИРДЛАГА =================
+    window.switchTab = function(tabName) {
+      const btnPassport = document.getElementById('tabBtnPassport');
+      const btnDash = document.getElementById('tabBtnDashboard');
+      const tabPassport = document.getElementById('tabContentPassport');
+      const tabDash = document.getElementById('tabContentDashboard');
+
+      if (tabName === 'passport') {
+        tabPassport.classList.remove('hidden');
+        tabDash.classList.add('hidden');
+        btnPassport.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20 cursor-pointer";
+        btnDash.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer";
+      } else {
+        tabPassport.classList.add('hidden');
+        tabDash.classList.remove('hidden');
+        btnDash.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20 cursor-pointer";
+        btnPassport.className = "px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 cursor-pointer";
+        renderDashboardMetrics();
+      }
+    };
+
+    function getFilteredAssets() {
+      return assets.filter(a => {
+        const matchSec = selectedSectionFilter === 'ALL' || a.category === selectedSectionFilter;
+        const matchCat = selectedDeviceCatFilter === 'ALL' || a.deviceCategory === selectedDeviceCatFilter;
+        const q = assetSearchQuery.toLowerCase();
+        const matchSearch = !q || (
+          (a.model && a.model.toLowerCase().includes(q)) ||
+          (a.journalNo && a.journalNo.toLowerCase().includes(q)) ||
+          (a.assetCode && a.assetCode.toLowerCase().includes(q)) ||
+          (a.owner && a.owner.toLowerCase().includes(q))
+        );
+        return matchSec && matchCat && matchSearch;
+      });
+    }
+
+    function initSectionFilterSelector() {
+      const sel = document.getElementById('sectionFilterSelector');
+      if (sel) sel.value = selectedSectionFilter;
+    }
+
+    window.onSectionFilterChange = function(val) {
+      selectedSectionFilter = val;
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    window.onDeviceCatFilterChange = function(val) {
+      selectedDeviceCatFilter = val;
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    window.onAssetSearchInput = function(val) {
+      assetSearchQuery = val.trim();
+      document.getElementById('btnClearSearch')?.classList.toggle('hidden', !assetSearchQuery);
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    window.clearAssetSearch = function() {
+      const inp = document.getElementById('assetSearchInput');
+      if (inp) inp.value = '';
+      window.onAssetSearchInput('');
+    };
+
+    function initAssetSelector() {
+      const sel = document.getElementById('assetSelector');
+      if (!sel) return;
+      sel.innerHTML = '';
+      const filtered = getFilteredAssets();
+
+      if (filtered.length === 0) {
+        sel.innerHTML = '<option value="">Төхөөрөмж олдсонгүй</option>';
+        return;
+      }
+
+      filtered.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.journalNo;
+        opt.textContent = `${a.journalNo} - ${a.model}`;
+        if (a.journalNo === currentAssetNo) opt.selected = true;
+        sel.appendChild(opt);
+      });
+
+      if (!filtered.some(a => a.journalNo === currentAssetNo)) {
+        currentAssetNo = filtered[0].journalNo;
+      }
+    }
+
+    window.onSelectAsset = function(val) {
+      currentAssetNo = val;
+      renderCurrentAsset();
+    };
+
+    function renderCurrentAsset() {
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      if (!asset) return;
+
+      document.getElementById('dispCategoryBadge').innerText = asset.category || '-';
+      document.getElementById('dispDeviceCatBadge').innerText = asset.deviceCategory || 'Төхөөрөмж';
+      document.getElementById('dispModel').innerText = asset.model || '-';
+      document.getElementById('dispAssetCode').innerText = asset.assetCode || '-';
+      document.getElementById('dispJournalNo').innerText = asset.journalNo || '-';
+      document.getElementById('dispLocation').innerText = asset.location || '-';
+      document.getElementById('dispOwner').innerText = asset.owner || '-';
+      document.getElementById('dispDept').innerText = asset.dept || '-';
+      document.getElementById('dispRole').innerText = asset.role || '-';
+      document.getElementById('dispCommissionedDate').innerText = asset.commissionedDate || '-';
+      document.getElementById('dispLifespan').innerText = asset.lifespan || '-';
+      document.getElementById('dispInterval').innerText = asset.interval || '-';
+
+      // Status badge
+      const sBadge = document.getElementById('dispStatusBadge');
+      let statusColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30';
+      if (asset.status === 'Гэмтсэн') statusColor = 'bg-rose-500/20 text-rose-300 border-rose-400/30';
+      if (asset.status === 'Засварт байгаа') statusColor = 'bg-amber-500/20 text-amber-300 border-amber-400/30';
+      sBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusColor}`;
+      sBadge.innerText = asset.status || 'Хэвийн';
+
+      // Specs render
+      const sBody = document.getElementById('specsTableBody');
+      sBody.innerHTML = '';
+      (asset.specs || []).forEach((s, idx) => {
+        sBody.innerHTML += `
+          <tr class="hover:bg-slate-50/80">
+            <td class="px-3.5 py-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="px-3.5 py-2.5 font-semibold text-slate-900">${escapeHtml(s.name)}</td>
+            <td class="px-3.5 py-2.5 font-mono text-slate-600">${escapeHtml(s.val)}</td>
+            <td class="px-3.5 py-2.5 text-center font-bold text-slate-800">${escapeHtml(s.qty)}</td>
+            <td class="px-3.5 py-2.5 text-slate-500">${escapeHtml(s.unit)}</td>
+          </tr>
+        `;
+      });
+
+      // Accessories render
+      const accBody = document.getElementById('accessoriesTableBody');
+      accBody.innerHTML = '';
+      (asset.accessories || []).forEach((a, idx) => {
+        accBody.innerHTML += `
+          <tr class="hover:bg-slate-50/80">
+            <td class="px-3 py-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="px-3 py-2.5 font-semibold text-slate-900">${escapeHtml(a.name)}</td>
+            <td class="px-2 py-2.5 text-center font-bold text-slate-800">${escapeHtml(a.qty)}</td>
+            <td class="px-3 py-2.5 text-slate-500">${escapeHtml(a.unit)}</td>
+          </tr>
+        `;
+      });
+
+      // Maintenance logs render
+      renderMaintenanceLogs(asset);
+    }
+
+    function renderMaintenanceLogs(asset) {
+      const tbody = document.getElementById('maintenanceTableBody');
+      tbody.innerHTML = '';
+      const logs = asset.logs || [];
+
+      document.getElementById('maintenanceLogCounters').innerHTML = `
+        <span class="px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600 text-xs">Нийт: <strong>${logs.length}</strong></span>
+      `;
+
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400">Үзлэг бүртгэгдээгүй байна</td></tr>`;
+        return;
+      }
+
+      const isLead = currentUser && (currentUser.role === 'lead' || currentUser.role === 'admin');
+      const isAuditor = currentUser && (currentUser.role === 'auditor' || currentUser.role === 'admin');
+
+      logs.forEach((log, idx) => {
+        const isApproved = log.status === 'approved';
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 border-b border-slate-100">
+            <td class="px-3.5 py-3 text-center text-slate-400 font-bold">${idx + 1}</td>
+            <td class="px-3.5 py-3 font-mono font-medium">${escapeHtml(log.date)}</td>
+            <td class="px-3.5 py-3 font-medium text-slate-800">${escapeHtml(log.action)}</td>
+            <td class="px-3.5 py-3 text-rose-600">${escapeHtml(log.issue || '-')}</td>
+            <td class="px-3.5 py-3">${escapeHtml(log.parts || '-')}</td>
+            <td class="px-3.5 py-3 font-semibold">${escapeHtml(log.statusAfter)}</td>
+            <td class="px-3.5 py-3 font-medium text-slate-600">${escapeHtml(log.technician)}</td>
+            <td class="px-3.5 py-3">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${isApproved ? 'Батлагдсан' : 'Хүлээгдэж буй'}
+              </span>
+            </td>
+            <td class="px-3.5 py-3">
+              ${isLead && !isApproved ? `
+                <button onclick="approveLog(${log.id})" class="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700">Батлах</button>
+              ` : `<span class="text-xs text-slate-500">${escapeHtml(log.approvedBy || '-')}</span>`}
+            </td>
+            <td class="px-3.5 py-3">
+              ${isAuditor ? `
+                <button onclick="openAuditModal(${log.id})" class="text-blue-600 underline font-semibold text-xs">${log.auditComment ? 'Засах' : '+ Дүгнэлт'}</button>
+                <div class="text-[11px] text-slate-500 italic mt-0.5">${escapeHtml(log.auditComment || '')}</div>
+              ` : `<span class="text-xs text-slate-500">${escapeHtml(log.auditComment || '-')}</span>`}
+            </td>
+            <td class="px-3.5 py-3 text-center no-print">
+              <button onclick="deleteInspectionLog(${log.id})" class="text-slate-400 hover:text-rose-600 p-1" title="Устгах">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    window.approveLog = function(logId) {
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      if (!asset) return;
+      const log = asset.logs.find(l => l.id === logId);
+      if (log) {
+        log.status = 'approved';
+        log.approvedBy = currentUser.name;
+        log.approvedDate = new Date().toISOString().split('T')[0];
+        logUserActivity('Батламж', `${asset.journalNo} үзлэгийг баталгаажууллаа.`);
+        saveDB();
+        renderCurrentAsset();
+      }
+    };
+
+    window.openAuditModal = function(logId) {
+      document.getElementById('auditLogId').value = logId;
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      const log = asset ? asset.logs.find(l => l.id === logId) : null;
+      document.getElementById('auditComment').value = log?.auditComment || '';
+      document.getElementById('auditModal').classList.remove('hidden');
+    };
+
+    window.closeAuditModal = function() {
+      document.getElementById('auditModal').classList.add('hidden');
+    };
+
+    window.handleAuditSubmit = function(e) {
+      e.preventDefault();
+      const logId = parseInt(document.getElementById('auditLogId').value);
+      const comment = document.getElementById('auditComment').value.trim();
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      if (asset) {
+        const log = asset.logs.find(l => l.id === logId);
+        if (log) {
+          log.auditComment = comment;
+          log.auditedBy = currentUser.name;
+          log.auditedDate = new Date().toISOString().split('T')[0];
+          saveDB();
+          renderCurrentAsset();
+          closeAuditModal();
+        }
+      }
+    };
+
+    window.deleteInspectionLog = function(logId) {
+      if (!confirm('Энэ үзлэгийн бичиглэлийг устгах уу?')) return;
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      if (asset) {
+        asset.logs = asset.logs.filter(l => l.id !== logId);
+        saveDB();
+        renderCurrentAsset();
+      }
+    };
+
+    // ================= ҮЗЛЭГ БҮРТГЭХ МОДАЛ УДИРДЛАГА =================
+    window.openInspectionModal = function() {
+      const modal = document.getElementById('inspectionModal');
+      document.getElementById('inspDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('inspTech').value = currentUser ? currentUser.name : '';
+      document.getElementById('partsInputTableBody').innerHTML = '';
+      modal.classList.remove('hidden');
+    };
+
+    window.closeInspectionModal = function() {
+      document.getElementById('inspectionModal').classList.add('hidden');
+    };
+
+    window.toggleIssueDescription = function(val) {
+      document.getElementById('issueDescBlock').classList.toggle('hidden', val !== 'Гэмтэлтэй');
+    };
+
+    window.addPartRow = function() {
+      const tbody = document.getElementById('partsInputTableBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-center font-bold text-slate-400">${idx}</td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg part-name" placeholder="Сэлбэгийн нэр"></td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg part-unit" value="ш"></td>
+        <td class="py-1 px-1"><input type="number" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-center part-qty" value="1"></td>
+        <td class="py-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    window.handleInspectionSubmit = function(e) {
+      e.preventDefault();
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      if (!asset) return;
+
+      const date = document.getElementById('inspDate').value;
+      const statusAfter = document.getElementById('inspStatus').value;
+      const tasks = [];
+      if (document.getElementById('chkTask1').checked) tasks.push("Үзлэг, үйлчилгээ хийв.");
+      if (document.getElementById('chkTask2').checked) tasks.push("Тоног төхөөрөмж сольж суурилуулсан.");
+      if (document.getElementById('chkTask3').checked) tasks.push("Үл тохирол арилгасан.");
+      if (document.getElementById('chkTask4').checked) tasks.push("Панелиудын бохирдлыг цэвэрлэж, тоосыг соруулав.");
+      if (document.getElementById('chkTask5').checked) tasks.push("Төхөөрөмжийн тохиргооны файлыг архивлав.");
+      const customTask = document.getElementById('inspActionCustom').value.trim();
+      if (customTask) tasks.push(customTask);
+
+      const issueType = document.getElementById('inspIssueType').value;
+      const issueDesc = issueType === 'Гэмтэлтэй' ? document.getElementById('inspIssueDesc').value.trim() : 'Хэвийн';
+
+      const parts = [];
+      document.querySelectorAll('#partsInputTableBody tr').forEach(row => {
+        const name = row.querySelector('.part-name')?.value.trim();
+        const qty = row.querySelector('.part-qty')?.value.trim();
+        const unit = row.querySelector('.part-unit')?.value.trim();
+        if (name) parts.push(`${name} (${qty}${unit})`);
+      });
+
+      const newLog = {
+        id: Date.now(),
+        date,
+        action: tasks.join(', ') || 'Үзлэг хийгдсэн',
+        statusAfter,
+        issue: issueDesc,
+        issueDate: issueType === 'Гэмтэлтэй' ? document.getElementById('inspIssueDate').value : null,
+        parts: parts.join(', ') || 'Байхгүй',
+        technician: currentUser ? currentUser.name : 'Инженер',
+        status: 'pending',
+        approvedBy: null,
+        approvedDate: null,
+        auditComment: null,
+        auditedBy: null
+      };
+
+      asset.logs.unshift(newLog);
+      asset.status = statusAfter;
+
+      logUserActivity('Үзлэг бүртгэл', `${asset.journalNo} төхөөрөмжид шинэ үзлэг нэмэгдлээ.`);
+      saveDB();
+      renderCurrentAsset();
+      closeInspectionModal();
+    };
+
+    // ================= ШИНЭ ТӨХӨӨРӨМЖ БҮРТГЭХ МОДАЛ =================
+    window.openNewAssetModal = function() {
+      document.getElementById('inpCommDate').value = new Date().toISOString().split('T')[0];
+      autoGenerateJournalNo();
+      document.getElementById('inpOwner').value = currentUser ? currentUser.name : '';
+      document.getElementById('inpDept').value = currentUser ? (currentUser.dept || 'МТХА') : '';
+      document.getElementById('inpRole').value = currentUser ? (currentUser.roleTitle || 'Инженер') : '';
+      document.getElementById('specInputTableBody').innerHTML = '';
+      document.getElementById('accInputTableBody').innerHTML = '';
+      document.getElementById('newAssetModal').classList.remove('hidden');
+    };
+
+    window.closeNewAssetModal = function() {
+      document.getElementById('newAssetModal').classList.add('hidden');
+    };
+
+    window.autoGenerateJournalNo = function() {
+      const dateVal = document.getElementById('inpCommDate').value || '2026-01-01';
+      const year = dateVal.substring(0, 4);
+      const cat = document.getElementById('inpCategory').value;
+      const code = SYSTEM_CODES[cat] || "01";
+      const count = assets.filter(a => a.journalNo.startsWith(year + code)).length + 1;
+      document.getElementById('inpJournalNo').value = `${year}${code}${String(count).padStart(3, '0')}`;
+    };
+
+    window.addSpecInputRow = function() {
+      const tbody = document.getElementById('specInputTableBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-center font-bold text-slate-400">${idx}</td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg spec-name" placeholder="Үзүүлэлт"></td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg spec-val" placeholder="Утга"></td>
+        <td class="py-1 px-1"><input type="number" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-center spec-qty" value="1"></td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg spec-unit" value="ш"></td>
+        <td class="py-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    window.addAccInputRow = function() {
+      const tbody = document.getElementById('accInputTableBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-center font-bold text-slate-400">${idx}</td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg acc-name" placeholder="Дагалдах хэрэгсэл"></td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg acc-val" placeholder="Үзүүлэлт"></td>
+        <td class="py-1 px-1"><input type="number" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-center acc-qty" value="1"></td>
+        <td class="py-1 px-1"><input type="text" class="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg acc-unit" value="ш"></td>
+        <td class="py-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    window.checkDuplicateAssetCode = function() {
+      const val = document.getElementById('inpAssetCode').value.trim();
+      const isDup = assets.some(a => a.assetCode.toLowerCase() === val.toLowerCase());
+      document.getElementById('assetCodeWarningBanner').classList.toggle('hidden', !isDup);
+    };
+
+    window.handleNewAssetSubmit = function(e) {
+      e.preventDefault();
+      const journalNo = document.getElementById('inpJournalNo').value.trim();
+      const assetCode = document.getElementById('inpAssetCode').value.trim();
+      const model = document.getElementById('inpModel').value.trim();
+
+      const specs = [];
+      document.querySelectorAll('#specInputTableBody tr').forEach(r => {
+        const name = r.querySelector('.spec-name')?.value.trim();
+        const val = r.querySelector('.spec-val')?.value.trim();
+        const qty = r.querySelector('.spec-qty')?.value.trim();
+        const unit = r.querySelector('.spec-unit')?.value.trim();
+        if (name) specs.push({ name, val, qty, unit });
+      });
+
+      const accessories = [];
+      document.querySelectorAll('#accInputTableBody tr').forEach(r => {
+        const name = r.querySelector('.acc-name')?.value.trim();
+        const val = r.querySelector('.acc-val')?.value.trim();
+        const qty = r.querySelector('.acc-qty')?.value.trim();
+        const unit = r.querySelector('.acc-unit')?.value.trim();
+        if (name) accessories.push({ name, val, qty, unit });
+      });
+
+      const newAsset = {
+        journalNo,
+        assetCode,
+        category: document.getElementById('inpCategory').value,
+        deviceCategory: document.getElementById('inpDeviceCategory').value,
+        model,
+        location: document.getElementById('inpLocation').value.trim(),
+        owner: document.getElementById('inpOwner').value.trim(),
+        dept: document.getElementById('inpDept').value.trim(),
+        role: document.getElementById('inpRole').value.trim(),
+        commissionedDate: document.getElementById('inpCommDate').value,
+        lifespan: document.getElementById('inpLifespan').value.trim(),
+        interval: document.getElementById('inpInterval').value,
+        status: document.getElementById('inpStatus').value,
+        specs,
+        accessories,
+        logs: []
+      };
+
+      assets.unshift(newAsset);
+      currentAssetNo = journalNo;
+      logUserActivity('Шинэ төхөөрөмж', `${journalNo} - ${model} бүртгэгдлээ.`);
+      saveDB();
+      initAssetSelector();
+      renderCurrentAsset();
+      closeNewAssetModal();
+    };
+
+    // ================= DASHBOARD & ТАЙЛАНГИЙН ЛОГИК =================
+    function renderDashboardMetrics() {
+      document.getElementById('kpiTotalAssets').innerText = assets.length;
+      const normalCount = assets.filter(a => a.status === 'Хэвийн ажиллагаатай').length;
+      const issueCount = assets.filter(a => a.status === 'Гэмтсэн' || a.status === 'Засварт байгаа').length;
+
+      document.getElementById('kpiNormalAssets').innerText = normalCount;
+      document.getElementById('kpiNormalPct').innerText = assets.length ? `${Math.round((normalCount / assets.length) * 100)}%` : '0%';
+
+      document.getElementById('kpiIssueAssets').innerText = issueCount;
+      document.getElementById('kpiIssuePct').innerText = assets.length ? `${Math.round((issueCount / assets.length) * 100)}%` : '0%';
+
+      // Системээр ангилсан прогресс бар
+      const dist = document.getElementById('systemDistributionBars');
+      dist.innerHTML = '';
+      Object.keys(SYSTEM_CODES).forEach(sys => {
+        const count = assets.filter(a => a.category === sys).length;
+        const pct = assets.length ? Math.round((count / assets.length) * 100) : 0;
+        dist.innerHTML += `
+          <div>
+            <div class="flex justify-between mb-1 font-semibold text-slate-700">
+              <span>${sys}</span>
+              <span>${count} ширхэг (${pct}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-blue-600 h-2 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.onReportTypeChange = function(val) {
+      document.getElementById('filterSectionBlock').classList.toggle('hidden', val !== 'BY_SECTION');
+      document.getElementById('filterAssetCheckboxBlock').classList.toggle('hidden', val !== 'SELECTED_ASSETS');
+      if (val === 'SELECTED_ASSETS') {
+        const list = document.getElementById('assetCheckboxList');
+        list.innerHTML = '';
+        assets.forEach(a => {
+          list.innerHTML += `
+            <label class="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-slate-200">
+              <input type="checkbox" value="${a.journalNo}" class="rpt-chk rounded text-blue-600">
+              <span class="truncate">${a.journalNo} - ${escapeHtml(a.model)}</span>
+            </label>
+          `;
+        });
+      }
+    };
+
+    window.toggleSelectAllAssets = function(checked) {
+      document.querySelectorAll('.rpt-chk').forEach(c => c.checked = checked);
+    };
+
+    window.generateReport = function() {
+      const type = document.getElementById('reportTypeSelector').value;
+      let targetAssets = [...assets];
+
+      if (type === 'BY_SECTION') {
+        const sec = document.getElementById('reportSectionTarget').value;
+        targetAssets = assets.filter(a => a.category === sec);
+      } else if (type === 'SELECTED_ASSETS') {
+        const checkedNos = Array.from(document.querySelectorAll('.rpt-chk:checked')).map(c => c.value);
+        targetAssets = assets.filter(a => checkedNos.includes(a.journalNo));
+      }
+
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = '';
+      document.getElementById('reportTimestamp').innerText = new Date().toLocaleString();
+
+      targetAssets.forEach((a, idx) => {
+        const lastLog = a.logs && a.logs.length ? a.logs[0] : null;
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 border-b border-slate-100">
+            <td class="p-2.5 text-center font-bold border-r">${idx + 1}</td>
+            <td class="p-2.5 font-mono border-r">${a.journalNo}</td>
+            <td class="p-2.5 font-mono border-r">${a.assetCode}</td>
+            <td class="p-2.5 font-semibold border-r">${escapeHtml(a.model)}</td>
+            <td class="p-2.5 border-r">${escapeHtml(a.category)}</td>
+            <td class="p-2.5 border-r">${escapeHtml(a.location)} / ${escapeHtml(a.owner)}</td>
+            <td class="p-2.5 border-r font-bold">${escapeHtml(a.status)}</td>
+            <td class="p-2.5 border-r font-mono">${lastLog ? lastLog.date : '-'}</td>
+            <td class="p-2.5">${lastLog ? `${escapeHtml(lastLog.action)} (Сэлбэг: ${escapeHtml(lastLog.parts)})` : '-'}</td>
+          </tr>
+        `;
+      });
+    };
+
+    // ================= QR КОД ҮҮСГЭХ =================
+    window.openQrModal = function() {
+      const asset = assets.find(a => a.journalNo === currentAssetNo);
+      if (!asset) return;
+
+      document.getElementById('lblJournalNo').innerText = asset.journalNo;
+      document.getElementById('lblModel').innerText = asset.model;
+      document.getElementById('lblAssetCode').innerText = asset.assetCode;
+
+      const qrContainer = document.getElementById('modalQrCodeContainer');
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: `${window.location.origin}${window.location.pathname}?asset=${asset.journalNo}`,
+        width: 140,
+        height: 140
+      });
+
+      document.getElementById('qrPrintModal').classList.remove('hidden');
+    };
+
+    window.closeQrModal = function() {
+      document.getElementById('qrPrintModal').classList.add('hidden');
+    };
+
+    window.printDeviceLabel = function() {
+      window.print();
+    };
+
+    // ================= ХЭРЭГЛЭГЧИД & АНГИЛАЛ УДИРДАХ =================
     function renderDeviceCategorySelectors() {
       const filterSel = document.getElementById('deviceCategorySelector');
       const inputSel = document.getElementById('inpDeviceCategory');
+      const editSel = document.getElementById('editModalDeviceCategory');
 
-      if (filterSel) {
-        filterSel.innerHTML = '<option value="ALL">Бүх ангилал (Бүгд)</option>';
+      [filterSel, inputSel, editSel].forEach(sel => {
+        if (!sel) return;
+        const isFilter = sel === filterSel;
+        sel.innerHTML = isFilter ? '<option value="ALL">Бүх ангилал (Бүгд)</option>' : '';
         deviceCategories.forEach(cat => {
           const opt = document.createElement('option');
           opt.value = cat;
           opt.textContent = cat;
-          if (cat === selectedDeviceCatFilter) opt.selected = true;
-          filterSel.appendChild(opt);
+          sel.appendChild(opt);
         });
-      }
-
-      if (inputSel) {
-        inputSel.innerHTML = '';
-        deviceCategories.forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = cat;
-          inputSel.appendChild(opt);
-        });
-      }
+      });
     }
 
     function renderCategoryManagementList() {
       const container = document.getElementById('devCategoryListContainer');
       container.innerHTML = '';
       deviceCategories.forEach((cat, idx) => {
-        const div = document.createElement('div');
-        div.className = 'flex justify-between items-center p-2.5 bg-white text-xs hover:bg-slate-50';
-        div.innerHTML = `
-          <span class="font-semibold text-slate-800">${idx + 1}. ${escapeHtml(cat)}</span>
-          <div class="flex items-center gap-1.5">
-            <button onclick="editDeviceCategory('${escapeHtml(cat)}')" class="p-1 text-slate-400 hover:text-blue-600" title="Засах"><i class="fa-solid fa-pen"></i></button>
-            <button onclick="deleteDeviceCategory('${escapeHtml(cat)}')" class="p-1 text-slate-400 hover:text-red-600" title="Устгах"><i class="fa-solid fa-trash-can"></i></button>
+        container.innerHTML += `
+          <div class="flex justify-between items-center p-2.5 bg-white text-xs hover:bg-slate-50">
+            <span class="font-semibold text-slate-800">${idx + 1}. ${escapeHtml(cat)}</span>
+            <button onclick="deleteDeviceCategory('${escapeHtml(cat)}')" class="p-1 text-slate-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>
           </div>
         `;
-        container.appendChild(div);
       });
     }
 
@@ -2083,6 +2465,7 @@
       renderCategoryManagementList();
       document.getElementById('deviceCategoryModal').classList.remove('hidden');
     };
+
     window.closeDevCategoryModal = function() {
       document.getElementById('deviceCategoryModal').classList.add('hidden');
     };
@@ -2097,3 +2480,207 @@
         renderDeviceCategorySelectors();
         renderCategoryManagementList();
         input.value = '';
+      }
+    };
+
+    window.deleteDeviceCategory = function(cat) {
+      deviceCategories = deviceCategories.filter(c => c !== cat);
+      saveDB();
+      renderDeviceCategorySelectors();
+      renderCategoryManagementList();
+    };
+
+    // Хэрэглэгчийн удирдлага модал
+    window.openUserMgmtModal = function() {
+      renderUserList();
+      document.getElementById('userMgmtModal').classList.remove('hidden');
+    };
+
+    window.closeUserMgmtModal = function() {
+      document.getElementById('userMgmtModal').classList.add('hidden');
+    };
+
+    function renderUserList() {
+      const container = document.getElementById('userListContainer');
+      container.innerHTML = '';
+      users.forEach(u => {
+        container.innerHTML += `
+          <div class="flex justify-between items-center p-3 bg-white text-xs">
+            <div>
+              <div class="font-bold text-slate-900">${escapeHtml(u.name)} (@${escapeHtml(u.username)})</div>
+              <div class="text-slate-400 text-[11px]">${ROLE_TITLES[u.role]} | ${escapeHtml(u.dept)} | ${escapeHtml(u.system)}</div>
+            </div>
+            ${u.username !== 'admin' ? `
+              <button onclick="deleteUser(${u.id})" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+            ` : '<span class="text-[10px] text-slate-400 font-bold">Үндсэн</span>'}
+          </div>
+        `;
+      });
+    }
+
+    window.handleUserFormSubmit = function(e) {
+      e.preventDefault();
+      const lName = document.getElementById('newUserLastName').value.trim();
+      const fName = document.getElementById('newUserFirstName').value.trim();
+      const uName = document.getElementById('newUserUsername').value.trim().toLowerCase();
+      const pwd = document.getElementById('newUserPassword').value.trim();
+
+      const newUser = {
+        id: Date.now(),
+        lastName: lName,
+        firstName: fName,
+        name: `${lName.charAt(0)}.${fName}`,
+        username: uName,
+        password: pwd,
+        role: document.getElementById('newUserRole').value,
+        system: document.getElementById('newUserSystem').value,
+        dept: document.getElementById('newUserDept').value.trim(),
+        roleTitle: document.getElementById('newUserRoleTitle').value.trim()
+      };
+
+      users.push(newUser);
+      saveDB();
+      renderUserList();
+      document.getElementById('userMgmtForm').reset();
+    };
+
+    window.deleteUser = function(id) {
+      if (!confirm('Хэрэглэгчийг устгах уу?')) return;
+      users = users.filter(u => u.id !== id);
+      saveDB();
+      renderUserList();
+    };
+
+    // Activity Log
+    window.openActivityLogModal = function() {
+      const tbody = document.getElementById('activityLogTableBody');
+      tbody.innerHTML = '';
+      systemAuditLogs.forEach((l, idx) => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 border-b border-slate-100">
+            <td class="p-2.5 text-center text-slate-400 font-bold">${idx + 1}</td>
+            <td class="p-2.5 font-mono text-slate-500">${l.timestamp}</td>
+            <td class="p-2.5 font-bold text-slate-800">${escapeHtml(l.user)}</td>
+            <td class="p-2.5 font-semibold text-blue-600">${escapeHtml(l.action)}</td>
+            <td class="p-2.5 text-slate-600">${escapeHtml(l.details)}</td>
+          </tr>
+        `;
+      });
+      document.getElementById('activityLogCount').innerText = `Нийт: ${systemAuditLogs.length} бичиглэл`;
+      document.getElementById('activityLogModal').classList.remove('hidden');
+    };
+
+    window.closeActivityLogModal = function() {
+      document.getElementById('activityLogModal').classList.add('hidden');
+    };
+
+    // БҮХ ТӨХӨӨРӨМЖҮҮДИЙГ ХАРАХ МОДАЛ
+    window.openAllAssetsModal = function() {
+      filterAdminAssetsTable();
+      document.getElementById('allAssetsAdminModal').classList.remove('hidden');
+    };
+
+    window.closeAllAssetsModal = function() {
+      document.getElementById('allAssetsAdminModal').classList.add('hidden');
+    };
+
+    window.filterAdminAssetsTable = function() {
+      const sec = document.getElementById('modalAdminSectionFilter').value;
+      const filtered = assets.filter(a => sec === 'ALL' || a.category === sec);
+      const tbody = document.getElementById('adminAssetsTableBody');
+      tbody.innerHTML = '';
+      document.getElementById('adminTotalAssetCount').innerText = filtered.length;
+
+      filtered.forEach((a, idx) => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 border-b border-slate-100">
+            <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-2.5 font-mono font-bold text-blue-600">${a.journalNo}</td>
+            <td class="p-2.5 font-mono">${a.assetCode}</td>
+            <td class="p-2.5 font-bold text-slate-800">${escapeHtml(a.model)}</td>
+            <td class="p-2.5 text-slate-600">${escapeHtml(a.category)}</td>
+            <td class="p-2.5 text-slate-600">${escapeHtml(a.deviceCategory)}</td>
+            <td class="p-2.5 text-slate-600">${escapeHtml(a.location)} / ${escapeHtml(a.owner)}</td>
+            <td class="p-2.5 font-bold">${escapeHtml(a.status)}</td>
+            <td class="p-2.5 text-center">
+              <button onclick="deleteAsset('${a.journalNo}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    };
+
+    window.deleteAsset = function(journalNo) {
+      if (!confirm(`${journalNo} төхөөрөмжийг устгах уу?`)) return;
+      assets = assets.filter(a => a.journalNo !== journalNo);
+      saveDB();
+      filterAdminAssetsTable();
+      initAssetSelector();
+      renderCurrentAsset();
+    };
+
+    // Мэдэгдэл
+    window.toggleNotificationPanel = function() {
+      document.getElementById('notifDropdown')?.classList.toggle('hidden');
+    };
+
+    function renderNotifications() {
+      const container = document.getElementById('notifListContainer');
+      const badge = document.getElementById('notifBadge');
+      const text = document.getElementById('notifCountText');
+      if (!container) return;
+
+      const issues = assets.filter(a => a.status === 'Гэмтсэн' || a.status === 'Засварт байгаа');
+      container.innerHTML = '';
+
+      if (issues.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs">Мэдэгдэл байхгүй</div>';
+        if (badge) badge.classList.add('hidden');
+        if (text) text.innerText = '0 шинэ';
+        return;
+      }
+
+      if (badge) {
+        badge.innerText = issues.length;
+        badge.classList.remove('hidden');
+      }
+      if (text) text.innerText = `${issues.length} гэмтэлтэй`;
+
+      issues.forEach(a => {
+        container.innerHTML += `
+          <div class="p-3 hover:bg-slate-50 transition">
+            <div class="font-bold text-rose-600 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(a.model)}
+            </div>
+            <div class="text-slate-500 text-[11px] mt-0.5">${a.journalNo} | ${escapeHtml(a.location)} (${escapeHtml(a.status)})</div>
+          </div>
+        `;
+      });
+    }
+
+    // Заавар модал
+    window.openUserGuideModal = function() {
+      document.getElementById('userGuideModal').classList.remove('hidden');
+    };
+    window.closeUserGuideModal = function() {
+      document.getElementById('userGuideModal').classList.add('hidden');
+    };
+
+    // ================= СИСТЕМ ЭХЛЭХ =================
+    window.addEventListener('DOMContentLoaded', async () => {
+      startLiveClock();
+      await loadFromStorage();
+
+      const savedUser = localStorage.getItem('saved_login_username');
+      const userInput = document.getElementById('loginUsername');
+      const chk = document.getElementById('chkRememberMe');
+      if (savedUser && userInput) {
+        userInput.value = savedUser;
+        if (chk) chk.checked = true;
+      }
+
+      checkAuth();
+    });
+  </script>
+</body>
+</html>
