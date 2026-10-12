@@ -143,20 +143,24 @@
         </button>
 
         <!-- МЭДЭГДЭЛ ХОНХ -->
-        <div class="relative">
-          <button onclick="toggleNotificationPanel()" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all border border-slate-700 cursor-pointer" title="Мэдэгдлүүд">
-            <i class="fa-solid fa-bell text-xs"></i>
-            <span id="notifBadge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 bg-red-600 text-white text-[10px] font-bold rounded-full animate-pulse">0</span>
-          </button>
+<div class="relative">
+  <button onclick="toggleNotificationPanel()" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl transition-all border border-slate-700 cursor-pointer" title="Мэдэгдлүүд">
+    <i class="fa-solid fa-bell text-xs"></i>
+    <span id="notifBadge" class="hidden absolute -top-1 -right-1 px-1.5 py-0.2 bg-red-600 text-white text-[10px] font-bold rounded-full animate-pulse">0</span>
+  </button>
 
-          <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-xs">
-            <div class="p-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-              <span class="font-bold text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-bell text-blue-600"></i> Мэдэгдлүүд</span>
-              <span id="notifCountText" class="text-[11px] text-slate-500 font-medium">0 шинэ</span>
-            </div>
-            <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></div>
-          </div>
-        </div>
+  <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-xs">
+    <div class="p-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+      <span class="font-bold text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-bell text-blue-600"></i> Мэдэгдлүүд</span>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="markAllNotificationsAsRead()" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">Бүгдийг уншсан</button>
+        <span class="text-slate-300">|</span>
+        <span id="notifCountText" class="text-[11px] text-slate-500 font-medium">0 шинэ</span>
+      </div>
+    </div>
+    <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></div>
+  </div>
+</div>
 
         <!-- ХЭРЭГЛЭГЧИД ТОВЧ (Зөвхөн Icon) -->
         <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl transition-all cursor-pointer" title="Хэрэглэгчийн эрх удирдах">
@@ -1564,6 +1568,7 @@
     let users = MASTER_USERS;
     let currentUser = null;
     let deviceCategories = DEFAULT_DEVICE_CATEGORIES;
+    let dismissedNotifications = {};
 
     const INITIAL_ASSETS = [
       {
@@ -3006,6 +3011,9 @@ window.closeUserMgmtModal = function() {
       const isAuditor = role === 'auditor';
 
       assets.forEach(a => {
+        // Хэрэв энэ төхөөрөмжийн мэдэгдлийг "Бүгдийг уншсан" гэж дарсан байвал алгасах
+        if (dismissedNotifications[a.journalNo]) return;
+
         // Энгийн инженер зөвхөн өөрийн системээ харна
         if (!isAdmin && !isLead && !isAuditor && a.category !== currentUser.system) return;
 
@@ -3099,6 +3107,14 @@ window.closeUserMgmtModal = function() {
     window.toggleNotificationPanel = function() {
       const panel = document.getElementById('notifDropdown');
       if (panel) panel.classList.toggle('hidden');
+    };
+    // <--- "markAllNotificationsAsRead" функцийг ЭНД шууд нэмж болно --->
+    window.markAllNotificationsAsRead = function() {
+      if (!currentUser) return;
+      assets.forEach(a => {
+        dismissedNotifications[a.journalNo] = true;
+      });
+      renderNotifications();
     };
 
    // 4. Зааварчилгаа нээх / хаах функцүүд
