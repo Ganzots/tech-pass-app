@@ -1938,7 +1938,13 @@
       const p = document.getElementById('loginPassword').value.trim();
       const rememberMe = document.getElementById('chkRememberMe')?.checked;
 
-      const found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+      // Хэрэглэгчийн жагсаалт хоосон эсвэл асуудалтай байвал MASTER_USERS-ээс шалгах найдвартай логик:
+      const userList = (users && users.length > 0) ? users : MASTER_USERS;
+      
+      const found = userList.find(user => 
+        (user.username && user.username.toLowerCase() === u) && 
+        String(user.password).trim() === p
+      );
 
       if (found) {
         currentUser = found;
