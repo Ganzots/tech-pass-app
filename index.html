@@ -2880,191 +2880,204 @@ window.closeUserMgmtModal = function() {
   document.getElementById('userMgmtModal').classList.add('hidden');
 };
 // 1. Үзлэгийн түүх харуулах функц (DOM ОНОВЧЛОЛТОЙ)
-    // 1. Үзлэгийн түүх болон батламж хэсгийг картууд хэлбэрээр цэгцтэй харуулах
-    function renderMaintenanceLogs(asset) {
-      const container = document.getElementById('maintenanceCardsContainer');
-      if (!container) return;
-      container.innerHTML = '';
+   // ==========================================================
+// IV. ҮЗЛЭГ ЗАСВАРЫН ХЭСГИЙГ ЖАГСААЛТ ХЭЛБЭРЭЭР ЦОМХОН БОЛГОЖ СИСТЕМД ОРУУЛАХ
+// ==========================================================
+function renderMaintenanceLogs(asset) {
+  const container = document.getElementById('maintenanceCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
 
-      // Дээд талын үзлэгийн тоон статистик харуулах
-      const counterEl = document.getElementById('maintenanceLogCounters');
-      if (counterEl) {
-        const allLogs = asset.logs || [];
-        const approvedCount = allLogs.filter(l => l.status === 'approved').length;
-        const pendingCount = allLogs.filter(l => l.status === 'pending').length;
-        const rejectedCount = allLogs.filter(l => l.auditStatus === 'rejected').length;
+  const allLogs = asset.logs || [];
+  const approvedCount = allLogs.filter(l => l.status === 'approved').length;
+  const pendingCount = allLogs.filter(l => l.status === 'pending').length;
+  const rejectedCount = allLogs.filter(l => l.auditStatus === 'rejected').length;
 
-        counterEl.innerHTML = `
-          <span class="px-3 py-1 rounded-xl bg-white text-slate-700 border border-slate-200 shadow-2xs">Нийт: <strong class="text-slate-900">${allLogs.length}</strong></span>
-          <span class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">Батлагдсан: <strong class="text-emerald-800">${approvedCount}</strong></span>
-          ${pendingCount > 0 ? `<span class="px-3 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 animate-pulse shadow-2xs">Хүлээгдэж буй: <strong>${pendingCount}</strong></span>` : ''}
-          ${rejectedCount > 0 ? `<span class="px-3 py-1 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">Татгалзсан: <strong>${rejectedCount}</strong></span>` : ''}
-        `;
-      }
+  // Дээд талын тоон үзүүлэлтүүд (Нийт, Батлагдсан, Хүлээгдэж буй, Татгалзсан)
+  const counterEl = document.getElementById('maintenanceLogCounters');
+  if (counterEl) {
+    counterEl.innerHTML = `
+      <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs">
+        <span class="text-slate-500">Нийт:</span>
+        <span class="font-extrabold text-slate-900">${allLogs.length}</span>[cite: 1]
+      </div>
+      <div class="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold shadow-2xs">
+        <span class="text-emerald-700">Батлагдсан:</span>
+        <span class="font-extrabold text-emerald-800">${approvedCount}</span>[cite: 1]
+      </div>
+      <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-xl text-xs font-semibold shadow-2xs">
+        <span class="text-amber-700">Хүлээгдэж буй:</span>
+        <span class="font-extrabold text-amber-800">${pendingCount}</span>
+      </div>
+      <div class="flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold shadow-2xs">
+        <span class="text-rose-700">Татгалзсан:</span>
+        <span class="font-extrabold text-rose-800">${rejectedCount}</span>
+      </div>
+    `;
+  }
 
-      let logs = [...(asset.logs || [])].sort((x, y) => new Date(y.date) - new Date(x.date));
+  let logs = [...allLogs].sort((x, y) => new Date(y.date) - new Date(x.date));
 
-      const role = currentUser ? currentUser.role : 'viewer';
-      const isAdmin = role === 'admin';
-      const isLead = role === 'lead';
-      const isAuditor = role === 'auditor';
-      const isTech = role === 'technician';
+  const role = currentUser ? currentUser.role : 'viewer';
+  const isAdmin = role === 'admin';
+  const isLead = role === 'lead';
+  const isAuditor = role === 'auditor';
+  const isTech = role === 'technician';
 
-      if (isAuditor) {
-        logs = logs.filter(l => l.status === 'approved');
-      }
+  if (isAuditor) {
+    logs = logs.filter(l => l.status === 'approved');
+  }
 
-      if (logs.length === 0) {
-        const emptyMsg = isAuditor 
-          ? 'Ахлах ажилтнаас баталгаажуулсан үзлэг одоогоор байхгүй байна.' 
-          : 'Үзлэг, үйлчилгээний түүх байхгүй байна.';
-        container.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium bg-white rounded-2xl border border-slate-200">${emptyMsg}</div>`;
-        return;
-      }
+  if (logs.length === 0) {
+    const emptyMsg = isAuditor 
+      ? 'Ахлах ажилтнаас баталгаажуулсан үзлэг одоогоор байхгүй байна.' 
+      : 'Үзлэг, засвар үйлчилгээний түүх байхгүй байна.';
+    container.innerHTML = `<div class="p-6 text-center text-slate-400 font-medium bg-white rounded-2xl border border-slate-200 text-xs">${emptyMsg}</div>`;
+    return;
+  }
 
-      const fragment = document.createDocumentFragment();
+  // Цомхон хүснэгт / жагсаалт үүсгэх контейнер
+  const tableWrapper = document.createElement('div');
+  tableWrapper.className = 'bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs';
 
-      logs.forEach((log, idx) => {
-        const card = document.createElement('div');
-        card.className = 'bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4 transition-all hover:shadow-md';
+  const table = document.createElement('table');
+  table.className = 'w-full text-left text-xs border-collapse';
 
-        let approvalHtml = '';
-        if (log.status === 'approved') {
-          approvalHtml = `
-            <div class="flex items-center justify-between sm:justify-start gap-3 bg-emerald-50/70 border border-emerald-200 px-3 py-2 rounded-xl">
-              <div>
-                <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs">
-                  <i class="fa-solid fa-circle-check"></i> Баталсан
-                </span>
-                <div class="text-[10px] text-slate-500 font-mono mt-0.5">${log.approvedDate || ''} (${log.approvedBy || ''})</div>
-              </div>
-              ${(isLead || isAdmin) ? `<button type="button" onclick="unapproveLog(${log.id})" class="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer px-2 py-1 bg-white rounded-lg border border-rose-200">Цуцлах</button>` : ''}
-            </div>
-          `;
-        } else {
-          if (isLead || isAdmin) {
-            approvalHtml = `
-              <div class="flex items-center justify-between bg-amber-50/70 border border-amber-200 px-3 py-2 rounded-xl">
-                <span class="text-xs font-bold text-amber-800">Батлах хүлээгдэж буй</span>
-                <button onclick="approveLog(${log.id})" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
-                  <i class="fa-solid fa-check"></i> Батлах
-                </button>
-              </div>
-            `;
-          } else {
-            approvalHtml = `<div class="text-xs text-amber-700 font-medium bg-amber-50 px-3 py-2 rounded-xl border border-amber-200"><i class="fa-solid fa-clock mr-1"></i> Баталгаажуулалт хүлээгдэж буй</div>`;
-          }
-        }
+  table.innerHTML = `
+    <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
+      <tr>
+        <th class="p-3 w-10 text-center">№</th>
+        <th class="p-3 w-28">Огноо / Төлөв</th>
+        <th class="p-3">Хийсэн ажил / Эвдрэл / Сэлбэг</th>
+        <th class="p-3 w-40">Ахлахын батламж</th>
+        <th class="p-3 w-44">Хяналтын дүгнэлт</th>
+        <th class="p-3 w-28 text-center no-print">Үйлдэл</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100 text-slate-700" id="compactLogsTbody"></tbody>
+  `;
 
-        let auditHtml = '';
-        const hasDecision = log.auditStatus || log.auditComment;
+  tableWrapper.appendChild(table);
+  container.appendChild(tableWrapper);
 
-        if (hasDecision) {
-          const isPassed = log.auditStatus === 'accepted';
-          const badgeClass = isPassed ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200';
-          const badgeIcon = isPassed ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600';
-          const statusTitle = isPassed ? 'Танилцав' : 'Шаардлага хангаагүй';
+  const tbody = table.querySelector('#compactLogsTbody');
+  const fragment = document.createDocumentFragment();
 
-          auditHtml = `
-            <div class="p-3 rounded-xl border ${badgeClass} text-xs space-y-1.5 bg-white">
-              <div class="font-bold flex items-center justify-between">
-                <span class="flex items-center gap-1.5"><i class="fa-solid ${badgeIcon} text-sm"></i> ${statusTitle}</span>
-                <span class="text-[10px] text-slate-400 font-mono">${log.auditedDate || ''}</span>
-              </div>
-              ${log.auditComment ? `<div class="text-slate-700 text-xs italic bg-slate-50 p-2 rounded-lg border border-slate-100">"${log.auditComment}"</div>` : ''}
-              <div class="text-[11px] text-slate-500 font-medium">👤 Шалгасан: <strong class="text-slate-700">${log.auditedBy || 'Хяналт'}</strong></div>
-              ${(isAuditor || isAdmin) ? `
-                <div class="flex items-center gap-2 pt-1 border-t border-slate-100">
-                  <button onclick="setAuditDecision(${log.id}, 'accepted')" class="text-[11px] text-emerald-600 hover:underline font-bold">✔ Танилцав</button>
-                  <button onclick="setAuditDecision(${log.id}, 'rejected')" class="text-[11px] text-rose-600 hover:underline font-bold">✖ Татгалзах</button>
-                </div>
-              ` : ''}
-            </div>
-          `;
-        } else {
-          if (isAuditor || isAdmin) {
-            auditHtml = `
-              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                <span class="text-xs font-bold text-slate-700 block">Хяналтын дүгнэлт өгөх:</span>
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="setAuditDecision(${log.id}, 'accepted')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-2xs">
-                    <i class="fa-solid fa-check"></i> Танилцав
-                  </button>
-                  <button type="button" onclick="setAuditDecision(${log.id}, 'rejected')" class="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-2xs">
-                    <i class="fa-solid fa-xmark"></i> Шаардлага хангаагүй
-                  </button>
-                </div>
-              </div>
-            `;
-          } else {
-            auditHtml = `<div class="text-xs text-slate-400 italic p-3 bg-slate-50 rounded-xl border border-slate-100">Хяналтын ажилтан дүгнэлт оруулаагүй байна.</div>`;
-          }
-        }
+  logs.forEach((log, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50/80 transition-colors';
 
-        let actionsHtml = '';
-        const canEdit = isAdmin || (isTech && log.technician === currentUser.name && log.status !== 'approved');
-        const canDelete = isAdmin || (isLead && log.status !== 'approved') || (isTech && log.technician === currentUser.name && log.status !== 'approved');
-
-        if (canEdit || canDelete) {
-          actionsHtml = `<div class="flex items-center gap-1.5">`;
-          if (canEdit) {
-            actionsHtml += `<button onclick="editLog(${log.id})" class="px-2.5 py-1.5 text-blue-600 hover:bg-blue-50 rounded-xl transition text-xs font-bold flex items-center gap-1 cursor-pointer border border-blue-200 bg-blue-50/50"><i class="fa-solid fa-pen"></i> Засах</button>`;
-          }
-          if (canDelete) {
-            actionsHtml += `<button onclick="deleteLog(${log.id})" class="px-2.5 py-1.5 text-rose-600 hover:bg-rose-50 rounded-xl transition text-xs font-bold flex items-center gap-1 cursor-pointer border border-rose-200 bg-rose-50/50"><i class="fa-solid fa-trash-can"></i> Устгах</button>`;
-          }
-          actionsHtml += `</div>`;
-        }
-
-        card.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 text-xs">
-            <div class="flex items-center gap-2.5">
-              <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 font-black flex items-center justify-center text-[11px]">${idx + 1}</span>
-              <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl"><i class="fa-regular fa-calendar text-blue-600 mr-1"></i> ${log.date || '-'}</span>
-              <span class="px-2.5 py-1 rounded-xl font-bold ${log.statusAfter === 'Гэмтсэн' ? 'bg-rose-100 text-rose-700' : (log.statusAfter === 'Засварт байгаа' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800')}">
-                ${log.statusAfter || 'Хэвийн'}
-              </span>
-            </div>
-            ${actionsHtml}
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div class="space-y-2 md:col-span-1 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
-              <div>
-                <span class="text-[10px] uppercase font-bold text-slate-400 block">Хийсэн ажил / Үзлэг:</span>
-                <p class="font-medium text-slate-800 mt-0.5 leading-relaxed">${log.action || '-'}</p>
-              </div>
-              <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                <span class="text-[10px] uppercase font-bold text-slate-400">Гэмтэл:</span>
-                <span class="font-semibold text-rose-600">${log.issue || 'Хэвийн'}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] uppercase font-bold text-slate-400">Сольсон сэлбэг:</span>
-                <span class="font-medium text-slate-700">${log.parts || 'Байхгүй'}</span>
-              </div>
-              <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                <span class="text-[10px] uppercase font-bold text-slate-400">Гүйцэтгэсэн инженер:</span>
-                <span class="font-bold text-slate-800">${log.technician || '-'}</span>
-              </div>
-            </div>
-
-            <div class="space-y-1.5 md:col-span-1 flex flex-col justify-center">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Ахлахын батламж:</span>
-              ${approvalHtml}
-            </div>
-
-            <div class="space-y-1.5 md:col-span-1 flex flex-col justify-center">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">Хяналтын дүгнэлт:</span>
-              ${auditHtml}
-            </div>
+    // 1. Ахлахын батламж төлөв
+    let approvalHtml = '';
+    if (log.status === 'approved') {
+      approvalHtml = `
+        <div class="flex items-center justify-between gap-1 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
+          <span class="text-emerald-700 font-bold text-[11px] flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> Баталсан
+          </span>
+          ${(isLead || isAdmin) ? `<button type="button" onclick="unapproveLog(${log.id})" class="text-[10px] text-rose-600 hover:underline font-semibold cursor-pointer">Цуцлах</button>` : ''}
+        </div>
+        <div class="text-[10px] text-slate-400 font-mono mt-0.5">${log.approvedDate || ''} (${log.approvedBy || ''})</div>
+      `;
+    } else {
+      if (isLead || isAdmin) {
+        approvalHtml = `
+          <div class="flex items-center justify-between gap-1 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg">
+            <span class="text-amber-800 font-bold text-[10px]">Хүлээгдэж буй</span>
+            <button onclick="approveLog(${log.id})" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-bold shadow-2xs transition flex items-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-check"></i> Батлах
+            </button>
           </div>
         `;
-
-        fragment.appendChild(card);
-      });
-
-      container.appendChild(fragment);
+      } else {
+        approvalHtml = `<span class="text-amber-700 font-medium text-[11px] bg-amber-50 px-2 py-1 rounded-md border border-amber-200 inline-block">Хүлээгдэж буй</span>`;
+      }
     }
+
+    // 2. Хяналтын дүгнэлт төлөв
+    let auditHtml = '';
+    const hasDecision = log.auditStatus || log.auditComment;
+    if (hasDecision) {
+      const isPassed = log.auditStatus === 'accepted';
+      const badgeClass = isPassed ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200';
+      const badgeIcon = isPassed ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600';
+      const statusTitle = isPassed ? 'Танилцав' : 'Шаардлага хангаагүй';
+
+      auditHtml = `
+        <div class="p-2 rounded-lg border ${badgeClass} text-[11px] space-y-1 bg-white">
+          <div class="font-bold flex items-center justify-between">
+            <span class="flex items-center gap-1"><i class="fa-solid ${badgeIcon}"></i> ${statusTitle}</span>
+            <span class="text-[9px] text-slate-400 font-mono">${log.auditedDate || ''}</span>
+          </div>
+          ${log.auditComment ? `<div class="text-slate-600 italic text-[10px]">"${log.auditComment}"</div>` : ''}
+          <div class="text-[10px] text-slate-500">Шалгасан: <strong>${log.auditedBy || 'Хяналт'}</strong></div>
+          ${(isAuditor || isAdmin) ? `
+            <div class="flex items-center gap-2 pt-1 border-t border-slate-100 text-[10px]">
+              <button onclick="setAuditDecision(${log.id}, 'accepted')" class="text-emerald-600 hover:underline font-bold">✔ Танилцав</button>
+              <button onclick="setAuditDecision(${log.id}, 'rejected')" class="text-rose-600 hover:underline font-bold">✖ Татгалзах</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else {
+      if (isAuditor || isAdmin) {
+        auditHtml = `
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="setAuditDecision(${log.id}, 'accepted')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-bold transition cursor-pointer">Танилцав</button>
+            <button type="button" onclick="setAuditDecision(${log.id}, 'rejected')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-[10px] font-bold transition cursor-pointer">Татгалзах</button>
+          </div>
+        `;
+      } else {
+        auditHtml = `<span class="text-slate-400 italic text-[11px]">Дүгнэлт байхгүй</span>`;
+      }
+    }
+
+    // 3. Засах, устгах үйлдлийн товчнууд
+    let actionsHtml = '';
+    const canEdit = isAdmin || (isTech && log.technician === currentUser.name && log.status !== 'approved');
+    const canDelete = isAdmin || (isLead && log.status !== 'approved') || (isTech && log.technician === currentUser.name && log.status !== 'approved');
+
+    if (canEdit || canDelete) {
+      actionsHtml = `<div class="flex items-center justify-center gap-1">`;
+      if (canEdit) {
+        actionsHtml += `<button onclick="editLog(${log.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition text-xs cursor-pointer" title="Засах"><i class="fa-solid fa-pen"></i></button>`;
+      }
+      if (canDelete) {
+        actionsHtml += `<button onclick="deleteLog(${log.id})" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition text-xs cursor-pointer" title="Устгах"><i class="fa-solid fa-trash-can"></i></button>`;
+      }
+      actionsHtml += `</div>`;
+    } else {
+      actionsHtml = `<span class="text-slate-400 text-[10px]">Болохгүй</span>`;
+    }
+
+    tr.innerHTML = `
+      <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+      <td class="p-3 align-top">
+        <div class="font-mono font-bold text-slate-900">${log.date || '-'}</div>
+        <div class="mt-1">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold inline-block ${log.statusAfter === 'Гэмтсэн' ? 'bg-rose-100 text-rose-700' : (log.statusAfter === 'Засварт байгаа' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800')}">
+            ${log.statusAfter || 'Хэвийн'}
+          </span>
+        </div>
+      </td>
+      <td class="p-3 align-top space-y-1">
+        <div class="font-medium text-slate-800">${log.action || '-'}</div>
+        <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-3 gap-y-0.5">
+          <span><strong>Гэмтэл:</strong> <span class="${log.issue && log.issue.startsWith('Гэмтэлтэй') ? 'text-rose-600 font-bold' : ''}">${log.issue || 'Хэвийн'}</span></span>
+          <span><strong>Сэлбэг:</strong> ${log.parts || 'Байхгүй'}</span>
+          <span><strong>Инженер:</strong> ${log.technician || '-'}</span>
+        </div>
+      </td>
+      <td class="p-3 align-top">${approvalHtml}</td>
+      <td class="p-3 align-top">${auditHtml}</td>
+      <td class="p-3 text-center align-middle no-print">${actionsHtml}</td>
+    `;
+
+    fragment.appendChild(tr);
+  });
+
+  tbody.appendChild(fragment);
+}
     // 2. Мэдэгдэл харуулах шинэчилсэн функц (Үүргээр ялгаж, дарахад шилжинэ)
     function renderNotifications() {
       const badge = document.getElementById('notifBadge');
