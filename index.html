@@ -2414,13 +2414,19 @@ async function loadFromStorage() {
 
       return list;
     }
+    let searchTimeout = null; // Хайлтын гацалтаас сэргийлэх хувьсагч
+
     window.onAssetSearchInput = function(val) {
       assetSearchQuery = val.trim();
       const btnClear = document.getElementById('btnClearSearch');
       if (btnClear) btnClear.classList.toggle('hidden', !assetSearchQuery);
       
-      initAssetSelector();
-      renderCurrentAsset();
+      // Хэрэглэгч үсэг бичиж байх хооронд хайхгүй, бичиж дуусаад 300 миллисекунд болоход хайлтыг ажиллуулна
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        initAssetSelector();
+        renderCurrentAsset();
+      }, 300); 
     };
 
     window.clearAssetSearch = function() {
