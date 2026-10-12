@@ -196,8 +196,8 @@
 
    <!-- ТОЛГОЙ БЛОК: БҮРЭН ӨРГӨН ШҮҮЛТҮҮРИЙН САМБАР -->
     <header class="bg-white/95 backdrop-blur-sm p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-200/80 space-y-3.5 transition-all">
-      <!-- 4 ШҮҮЛТҮҮРИЙГ ДЭЛГЭЦИЙН ӨРГӨНӨӨР ТЭГШ 4 ХУВААСАН GRID -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full border-b border-slate-100 pb-3.5">
+      <!-- 5 ШҮҮЛТҮҮРИЙГ ДЭЛГЭЦИЙН ӨРГӨНӨӨР ТЭГШ 5 ХУВААСАН GRID -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full border-b border-slate-100 pb-3.5">
         
         <!-- 1. Хэсэг -->
         <div class="space-y-1">
@@ -228,7 +228,21 @@
           </div>
         </div>
 
-        <!-- 3. Шуурхай хайлт -->
+        <!-- 3. ШИНЭ: Төлөв -->
+        <div class="space-y-1">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">
+            <i class="fa-solid fa-heart-pulse text-rose-500 mr-1"></i> Төлөв
+          </label>
+          <select id="statusFilterSelector" onchange="onStatusFilterChange(this.value)" class="w-full bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-sm">
+            <option value="ALL">Бүх төлөв (Бүгд)</option>
+            <option value="Хэвийн ажиллагаатай">🟢 Хэвийн ажиллагаатай</option>
+            <option value="Гэмтсэн">🔴 Гэмтсэн</option>
+            <option value="Засварт байгаа">🟡 Засварт байгаа</option>
+            <option value="Актлагдсан">⚪ Актлагдсан</option>
+          </select>
+        </div>
+
+        <!-- 4. Шуурхай хайлт -->
         <div class="space-y-1">
           <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-0.5">
             <i class="fa-solid fa-magnifying-glass text-teal-600 mr-1"></i> Шуурхай хайлт
@@ -244,7 +258,7 @@
           </div>
         </div>
 
-        <!-- 4. Төхөөрөмж сонгох -->
+        <!-- 5. Төхөөрөмж сонгох -->
         <div class="space-y-1">
           <label class="block text-[11px] font-bold text-blue-700 uppercase tracking-wider ml-0.5">
             <i class="fa-solid fa-desktop text-blue-600 mr-1"></i> Сонгосон төхөөрөмж
@@ -1660,6 +1674,7 @@
     let currentAssetNo = "201402001";
     let selectedSectionFilter = "ALL";
     let selectedDeviceCatFilter = "ALL";
+    let selectedStatusFilter = "ALL";
     let systemAuditLogs = [];
     let assetSearchQuery = "";
 function logUserActivity(actionType, details) {
@@ -2386,7 +2401,11 @@ async function loadFromStorage() {
       initAssetSelector();
       renderCurrentAsset();
     };
-
+window.onStatusFilterChange = function(val) {
+      selectedStatusFilter = val;
+      initAssetSelector();
+      renderCurrentAsset();
+    };
     function getAccessibleAssets() {
       if (!currentUser) return [];
       const isAdmin = currentUser.role === 'admin';
@@ -2394,6 +2413,8 @@ async function loadFromStorage() {
       const isAuditor = currentUser.role === 'auditor';
 
       let list = assets;
+      
+      // 1. ЭРХИЙН ШҮҮЛТ: Инженер зөвхөн өөрийн системийг харна
       if (!isAdmin && !isLead && !isAuditor) {
         list = assets.filter(a => a.category === currentUser.system);
       } else {
@@ -2402,9 +2423,17 @@ async function loadFromStorage() {
         }
       }
 
+      // 2. АНГИЛЛЫН ШҮҮЛТ
       if (selectedDeviceCatFilter !== "ALL") {
         list = list.filter(a => (a.deviceCategory || "Сервер болон компьютер") === selectedDeviceCatFilter);
       }
+
+      // 3. ШИНЭ: ТӨЛВИЙН ШҮҮЛТ (Status Filter)
+      if (selectedStatusFilter !== "ALL") {
+        list = list.filter(a => (a.status || "Хэвийн ажиллагаатай") === selectedStatusFilter);
+      }
+
+      // ТҮРГЭН ХАЙЛТЫН ТҮЛХҮҮР ҮГЭЭР ШҮҮХ
 
       // ТҮРГЭН ХАЙЛТЫН ТҮЛХҮҮР ҮГЭЭР ШҮҮХ
       if (assetSearchQuery) {
