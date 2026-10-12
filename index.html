@@ -1733,6 +1733,7 @@
     let selectedStatusFilter = "ALL";
     let systemAuditLogs = [];
     let assetSearchQuery = "";
+    let currentMaintenancePage = 1; // Үзлэгийн жагсаалтын идэвхтэй хуудас
 function logUserActivity(actionType, details) {
       const now = new Date();
       const pad = n => String(n).padStart(2, '0');
@@ -2862,7 +2863,7 @@ window.closeUserMgmtModal = function() {
 // 1. Үзлэгийн түүх харуулах функц (DOM ОНОВЧЛОЛТОЙ)
    // ==========================================================
 // ==========================================================
-// IV. ҮЗЛЭГ ЗАСВАРЫН ЖАГСААЛТЫГ ЗАСВАРЛАЖ БАЙРЛУУЛАХ
+// IV. ҮЗЛЭГ ЗАСВАРЫН ЖАГСААЛТЫГ ХУУДАСЛАЛТТАЙГААР ҮЗҮҮЛЭХ
 // ==========================================================
 function renderMaintenanceLogs(asset) {
   const container = document.getElementById('maintenanceCardsContainer');
@@ -2917,33 +2918,77 @@ function renderMaintenanceLogs(asset) {
     return;
   }
 
+  // Хуудаслалтын тооцоолол (Нэг хуудсанд 6 бүртгэл)
+  const pageSize = 6;
+  const totalPages = Math.ceil(logs.length / pageSize) || 1;
+  if (currentMaintenancePage > totalPages) currentMaintenancePage = totalPages;
+  if (currentMaintenancePage < 1) currentMaintenancePage = 1;
+
+  const startIndex = (currentMaintenancePage - 1) * pageSize;
+  const paginatedLogs = logs.slice(startIndex, startIndex + pageSize);
+
+  // Хуудас солих удирдлагын HTML блок үүсгэх функц
+  function createPaginationHtml() {
+    if (totalPages <= 1) return '';
+    return `
+      <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-y border-slate-200 text-xs">
+        <div class="text-slate-500 font-medium">
+          Нийт <strong>${logs.length}</strong> бичиглэлээс <strong class="text-slate-800">${startIndex + 1}-${Math.min(startIndex + pageSize, logs.length)}</strong> харагдаж байна (Хуудас ${currentMaintenancePage}/${totalPages})
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="changeMaintenancePage(1)" ${currentMaintenancePage === 1 ? 'disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-300 rounded-lg cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg font-semibold cursor-pointer shadow-2xs"'}>
+            <i class="fa-solid fa-angles-left"></i> Эхэнд
+          </button>
+          <button type="button" onclick="changeMaintenancePage(${currentMaintenancePage - 1})" ${currentMaintenancePage === 1 ? 'disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-300 rounded-lg cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg font-semibold cursor-pointer shadow-2xs"'}>
+            <i class="fa-solid fa-angle-left"></i> Өмнөх
+          </button>
+          <span class="px-3 py-1 bg-blue-600 text-white font-bold rounded-lg shadow-2xs">${currentMaintenancePage} / ${totalPages}</span>
+          <button type="button" onclick="changeMaintenancePage(${currentMaintenancePage + 1})" ${currentMaintenancePage === totalPages ? 'disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-300 rounded-lg cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg font-semibold cursor-pointer shadow-2xs"'}>
+            Дараах <i class="fa-solid fa-angle-right"></i>
+          </button>
+          <button type="button" onclick="changeMaintenancePage(${totalPages})" ${currentMaintenancePage === totalPages ? 'disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-300 rounded-lg cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-lg font-semibold cursor-pointer shadow-2xs"'}>
+            Төгсгөл <i class="fa-solid fa-angles-right"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   const tableWrapper = document.createElement('div');
-  tableWrapper.className = 'bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs';
+  tableWrapper.className = 'bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs space-y-0';
 
-  const table = document.createElement('table');
-  table.className = 'w-full text-left text-xs border-collapse';
+  let htmlContent = '';
+  // 1. Дээд талын хуудас солих хэсэг
+  htmlContent += createPaginationHtml();
 
-  table.innerHTML = `
-    <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
-      <tr>
-        <th class="p-3 w-10 text-center">№</th>
-        <th class="p-3 w-28">Огноо / Төлөв</th>
-        <th class="p-3">Хийсэн ажил / Эвдрэл / Сэлбэг</th>
-        <th class="p-3 w-40">Ахлахын батламж</th>
-        <th class="p-3 w-44">Хяналтын дүгнэлт</th>
-        <th class="p-3 w-28 text-center no-print">Үйлдэл</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-slate-100 text-slate-700" id="compactLogsTbody"></tbody>
+  htmlContent += `
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200 tracking-wider">
+          <tr>
+            <th class="p-3 w-10 text-center">№</th>
+            <th class="p-3 w-28">Огноо / Төлөв</th>
+            <th class="p-3">Хийсэн ажил / Эвдрэл / Сэлбэг</th>
+            <th class="p-3 w-40">Ахлахын батламж</th>
+            <th class="p-3 w-44">Хяналтын дүгнэлт</th>
+            <th class="p-3 w-28 text-center no-print">Үйлдэл</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700" id="compactLogsTbody"></tbody>
+      </table>
+    </div>
   `;
 
-  tableWrapper.appendChild(table);
+  // 2. Доод талын хуудас солих хэсэг
+  htmlContent += createPaginationHtml();
+
+  tableWrapper.innerHTML = htmlContent;
   container.appendChild(tableWrapper);
 
-  const tbody = table.querySelector('#compactLogsTbody');
+  const tbody = tableWrapper.querySelector('#compactLogsTbody');
   const fragment = document.createDocumentFragment();
 
-  logs.forEach((log, idx) => {
+  paginatedLogs.forEach((log, idx) => {
     const tr = document.createElement('tr');
     tr.className = 'hover:bg-slate-50/80 transition-colors';
 
@@ -3027,12 +3072,12 @@ function renderMaintenanceLogs(asset) {
       actionsHtml = `<span class="text-slate-400 text-[10px]">Болохгүй</span>`;
     }
 
-    // Засвар: Гэмтлийн утга хоосон эсвэл хэвийн биш үед бодит утгыг нь зөв харуулах болгов
+    const globalIndex = startIndex + idx + 1;
     const issueDisplay = log.issue || (log.statusAfter === 'Гэмтсэн' ? 'Гэмтэлтэй' : 'Хэвийн');
     const isIssueActive = issueDisplay !== 'Хэвийн';
 
     tr.innerHTML = `
-      <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+      <td class="p-3 text-center font-bold text-slate-400">${globalIndex}</td>
       <td class="p-3 align-top">
         <div class="font-mono font-bold text-slate-900">${log.date || '-'}</div>
         <div class="mt-1">
@@ -3059,6 +3104,16 @@ function renderMaintenanceLogs(asset) {
 
   tbody.appendChild(fragment);
 }
+
+// Хуудас солих туслах функц (Үүнийг мөн хамт нэмнэ)
+window.changeMaintenancePage = function(pageNumber) {
+  currentMaintenancePage = pageNumber;
+  const accessible = getAccessibleAssets();
+  const a = accessible.find(x => x.journalNo === currentAssetNo);
+  if (a) {
+    renderMaintenanceLogs(a);
+  }
+};
     // 2. Мэдэгдэл харуулах шинэчилсэн функц (Үүргээр ялгаж, дарахад шилжинэ)
     function renderNotifications() {
       const badge = document.getElementById('notifBadge');
