@@ -3002,6 +3002,17 @@ window.closeUserMgmtModal = function() {
 
     // 4. Зааварчилгаа болон Хэрэглэгчийн модал нээх функцүүд
     window.openUserGuideModal = function() {
+      // Зааварчилгаа нээх функц
+    window.openUserGuideModal = function() {
+      const modal = document.getElementById('userGuideModal');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    // Зааварчилгаа хаах функц (Хаах товч ажиллах баталгаа)
+    window.closeUserGuideModal = function() {
+      const modal = document.getElementById('userGuideModal');
+      if (modal) modal.classList.add('hidden');
+    };
       document.getElementById('userGuideModal').classList.remove('hidden');
     };
   
