@@ -2756,12 +2756,13 @@ function calculateNextInspectionData(asset) {
 window.closeUserMgmtModal = function() {
   document.getElementById('userMgmtModal').classList.add('hidden');
 };
-// 1. Үзлэгийн түүх харуулах функц
+// 1. Үзлэгийн түүх харуулах функц (DOM ОНОВЧЛОЛТОЙ)
     function renderMaintenanceLogs(asset) {
       const tbody = document.getElementById('maintenanceTableBody');
       if (!tbody) return;
       tbody.innerHTML = '';
-// Дээд талын үзлэгийн тоон статистик харуулах
+
+      // Дээд талын үзлэгийн тоон статистик харуулах
       const counterEl = document.getElementById('maintenanceLogCounters');
       if (counterEl) {
         const allLogs = asset.logs || [];
@@ -2776,6 +2777,7 @@ window.closeUserMgmtModal = function() {
           ${rejectedCount > 0 ? `<span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 border border-rose-200">Татгалзсан: ${rejectedCount}</span>` : ''}
         `;
       }
+
       // Сүүлийн огноотой үзлэгийг хамгийн эхэнд байрлуулах
       let logs = [...(asset.logs || [])].sort((x, y) => new Date(y.date) - new Date(x.date));
 
@@ -2797,6 +2799,9 @@ window.closeUserMgmtModal = function() {
         tbody.innerHTML = `<tr><td colspan="11" class="text-center p-4 text-slate-400 font-medium">${emptyMsg}</td></tr>`;
         return;
       }
+
+      // ОНОВЧЛОЛ: DocumentFragment ашиглах
+      const fragment = document.createDocumentFragment();
 
       logs.forEach((log, idx) => {
         const tr = document.createElement('tr');
@@ -2826,7 +2831,7 @@ window.closeUserMgmtModal = function() {
           }
         }
 
-        // 2. Ахлахын мэдээлэл багана (Хяналтын шийдвэрээс хамаарч өөрчлөгдөнө)
+        // 2. Ахлахын мэдээлэл багана
         let leadApproverHtml = '-';
         if (log.auditStatus === 'rejected') {
           leadApproverHtml = `
@@ -2849,15 +2854,13 @@ window.closeUserMgmtModal = function() {
           `;
         }
 
-// 3. Хяналтын дүгнэлт багана ("Танилцав", "Шаардлага хангаагүй" + Огноо, цаг)
+        // 3. Хяналтын дүгнэлт багана
         let auditHtml = '';
         const hasDecision = log.auditStatus || log.auditComment;
 
         if (hasDecision) {
           const isPassed = log.auditStatus === 'accepted';
-          const badgeClass = isPassed 
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-            : 'bg-rose-50 text-rose-800 border-rose-200';
+          const badgeClass = isPassed ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200';
           const badgeIcon = isPassed ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600';
           const statusTitle = isPassed ? 'Танилцав' : 'Шаардлага хангаагүй';
 
@@ -2873,8 +2876,6 @@ window.closeUserMgmtModal = function() {
               </div>
             </div>
           `;
-
-          // Хяналтын ажилтан эсвэл админ шаардлагатай бол шийдвэрээ солих боломж
           if (isAuditor || isAdmin) {
             auditHtml += `
               <div class="flex items-center gap-2 mt-1">
@@ -2884,7 +2885,6 @@ window.closeUserMgmtModal = function() {
             `;
           }
         } else {
-          // Дүгнэлт гараагүй үед
           if (isAuditor || isAdmin) {
             auditHtml = `
               <div class="flex items-center gap-1.5 whitespace-nowrap">
@@ -2901,7 +2901,7 @@ window.closeUserMgmtModal = function() {
           }
         }
 
-        // 4. Үйлдлүүд (Засах, Устгах эрх)
+        // 4. Үйлдлүүд
         let actionsHtml = `<div class="flex items-center justify-center gap-1">`;
         const canEdit = isAdmin || (isTech && log.technician === currentUser.name && log.status !== 'approved');
         const canDelete = isAdmin || (isLead && log.status !== 'approved') || (isTech && log.technician === currentUser.name && log.status !== 'approved');
@@ -2935,10 +2935,12 @@ window.closeUserMgmtModal = function() {
           <td class="px-3 py-3 min-w-[180px]">${auditHtml}</td>
           <td class="px-3 py-3 text-center no-print">${actionsHtml}</td>
         `;
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
       });
-    }
 
+      // Хүснэгтийг ганцхан удаа DOM руу оруулах
+      tbody.appendChild(fragment);
+    }
     // 2. Мэдэгдэл харуулах шинэчилсэн функц (Үүргээр ялгаж, дарахад шилжинэ)
     function renderNotifications() {
       const badge = document.getElementById('notifBadge');
