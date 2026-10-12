@@ -2881,7 +2881,8 @@ window.closeUserMgmtModal = function() {
 };
 // 1. Үзлэгийн түүх харуулах функц (DOM ОНОВЧЛОЛТОЙ)
    // ==========================================================
-// IV. ҮЗЛЭГ ЗАСВАРЫН ХЭСГИЙГ ЖАГСААЛТ ХЭЛБЭРЭЭР ЦОМХОН БОЛГОЖ СИСТЕМД ОРУУЛАХ
+// ==========================================================
+// IV. ҮЗЛЭГ ЗАСВАРЫН ЖАГСААЛТЫГ ЗАСВАРЛАЖ БАЙРЛУУЛАХ
 // ==========================================================
 function renderMaintenanceLogs(asset) {
   const container = document.getElementById('maintenanceCardsContainer');
@@ -2893,17 +2894,17 @@ function renderMaintenanceLogs(asset) {
   const pendingCount = allLogs.filter(l => l.status === 'pending').length;
   const rejectedCount = allLogs.filter(l => l.auditStatus === 'rejected').length;
 
-  // Дээд талын тоон үзүүлэлтүүд (Нийт, Батлагдсан, Хүлээгдэж буй, Татгалзсан)
+  // Дээд талын тоон үзүүлэлтүүд
   const counterEl = document.getElementById('maintenanceLogCounters');
   if (counterEl) {
     counterEl.innerHTML = `
       <div class="flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs">
         <span class="text-slate-500">Нийт:</span>
-        <span class="font-extrabold text-slate-900">${allLogs.length}</span>[cite: 1]
+        <span class="font-extrabold text-slate-900">${allLogs.length}</span>
       </div>
       <div class="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold shadow-2xs">
         <span class="text-emerald-700">Батлагдсан:</span>
-        <span class="font-extrabold text-emerald-800">${approvedCount}</span>[cite: 1]
+        <span class="font-extrabold text-emerald-800">${approvedCount}</span>
       </div>
       <div class="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-xl text-xs font-semibold shadow-2xs">
         <span class="text-amber-700">Хүлээгдэж буй:</span>
@@ -2936,7 +2937,6 @@ function renderMaintenanceLogs(asset) {
     return;
   }
 
-  // Цомхон хүснэгт / жагсаалт үүсгэх контейнер
   const tableWrapper = document.createElement('div');
   tableWrapper.className = 'bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs';
 
@@ -2967,7 +2967,6 @@ function renderMaintenanceLogs(asset) {
     const tr = document.createElement('tr');
     tr.className = 'hover:bg-slate-50/80 transition-colors';
 
-    // 1. Ахлахын батламж төлөв
     let approvalHtml = '';
     if (log.status === 'approved') {
       approvalHtml = `
@@ -2994,7 +2993,6 @@ function renderMaintenanceLogs(asset) {
       }
     }
 
-    // 2. Хяналтын дүгнэлт төлөв
     let auditHtml = '';
     const hasDecision = log.auditStatus || log.auditComment;
     if (hasDecision) {
@@ -3032,7 +3030,6 @@ function renderMaintenanceLogs(asset) {
       }
     }
 
-    // 3. Засах, устгах үйлдлийн товчнууд
     let actionsHtml = '';
     const canEdit = isAdmin || (isTech && log.technician === currentUser.name && log.status !== 'approved');
     const canDelete = isAdmin || (isLead && log.status !== 'approved') || (isTech && log.technician === currentUser.name && log.status !== 'approved');
@@ -3050,6 +3047,10 @@ function renderMaintenanceLogs(asset) {
       actionsHtml = `<span class="text-slate-400 text-[10px]">Болохгүй</span>`;
     }
 
+    // Засвар: Гэмтлийн утга хоосон эсвэл хэвийн биш үед бодит утгыг нь зөв харуулах болгов
+    const issueDisplay = log.issue || (log.statusAfter === 'Гэмтсэн' ? 'Гэмтэлтэй' : 'Хэвийн');
+    const isIssueActive = issueDisplay !== 'Хэвийн';
+
     tr.innerHTML = `
       <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
       <td class="p-3 align-top">
@@ -3063,7 +3064,7 @@ function renderMaintenanceLogs(asset) {
       <td class="p-3 align-top space-y-1">
         <div class="font-medium text-slate-800">${log.action || '-'}</div>
         <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-3 gap-y-0.5">
-          <span><strong>Гэмтэл:</strong> <span class="${log.issue && log.issue.startsWith('Гэмтэлтэй') ? 'text-rose-600 font-bold' : ''}">${log.issue || 'Хэвийн'}</span></span>
+          <span><strong>Гэмтэл:</strong> <span class="${isIssueActive ? 'text-rose-600 font-bold' : ''}">${issueDisplay}</span></span>
           <span><strong>Сэлбэг:</strong> ${log.parts || 'Байхгүй'}</span>
           <span><strong>Инженер:</strong> ${log.technician || '-'}</span>
         </div>
