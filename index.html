@@ -3674,21 +3674,24 @@ window.openNewAssetModal = function() {
     // ================= БАТАЛГААЖУУЛАЛТ, АУДИТ, ЗАСАХ БА УСТГАХ ЛОГИК =================
 
     // 1. Ахлах ажилтан үзлэг "Батлах" (Шууд батална, асуух болон анхааруулах цонх гарахгүй)
+    // Огноо цагийг стандарт форматын дагуу үүсгэх туслах функц (Давхардлыг арилгав)
+    function getFormattedTimestamp() {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+
+    // 1. Ахлах ажилтан үзлэг "Батлах" (Шууд батална, асуух болон анхааруулах цонх гарахгүй)
     window.approveLog = function(logId) {
       const a = assets.find(x => x.journalNo === currentAssetNo);
       if (!a || !a.logs) return;
-
       const log = a.logs.find(x => x.id == logId);
       if (!log) return;
-
-      const now = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
       log.status = 'approved';
       logUserActivity('Үзлэг баталсан', `№${a.journalNo} (${a.model}) үзлэгийг баталгаажуулав.`);
       log.approvedBy = currentUser.name;
-      log.approvedDate = formattedTimestamp;
+      log.approvedDate = getFormattedTimestamp();
 
       // Хамгийн сүүлийн үзлэг бол төхөөрөмжийн үндсэн төлөвийг шинэчлэх
       if (a.logs && a.logs.length > 0 && a.logs[0].id == logId) {
@@ -3707,7 +3710,6 @@ window.openNewAssetModal = function() {
     window.unapproveLog = function(logId) {
       const a = assets.find(x => x.journalNo === currentAssetNo);
       if (!a || !a.logs) return;
-
       const log = a.logs.find(x => x.id == logId);
       if (!log) return;
 
@@ -3750,22 +3752,16 @@ window.openNewAssetModal = function() {
       const log = a.logs.find(x => x.id == logId);
       if (!log) return;
 
-      const now = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-
       if (status === 'accepted') {
-        // 1. ТАНИЛЦАВ: Ямар ч цонх асуухгүй, шууд танилцсан төлөвт оруулж шинэчилнэ
         log.auditStatus = 'accepted';
         log.auditComment = '';
         log.auditedBy = currentUser ? currentUser.name : 'Хяналтын ажилтан';
-        log.auditedDate = formattedTimestamp;
+        log.auditedDate = getFormattedTimestamp();
 
         saveDB();
         renderCurrentAsset();
         generateReport();
       } else if (status === 'rejected') {
-        // 2. ШААРДЛАГА ХАНГААГҮЙ: Хөтчийн prompt биш, дотоод auditModal цонхыг нээнэ
         document.getElementById('auditLogId').value = logId;
         document.getElementById('auditComment').value = log.auditComment || '';
         document.getElementById('auditModalTitle').innerText = "Шаардлага хангаагүй шалтгаан бичих";
@@ -3789,14 +3785,10 @@ window.openNewAssetModal = function() {
       const log = a.logs.find(x => x.id == logId);
       if (!log) return;
 
-      const now = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      const formattedTimestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-
       log.auditStatus = 'rejected';
       log.auditComment = comment;
       log.auditedBy = currentUser ? currentUser.name : 'Хяналтын ажилтан';
-      log.auditedDate = formattedTimestamp;
+      log.auditedDate = getFormattedTimestamp();
 
       saveDB();
       renderCurrentAsset();
