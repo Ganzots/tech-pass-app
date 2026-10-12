@@ -166,6 +166,10 @@
         <button id="btnActivityLog" onclick="openActivityLogModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 rounded-xl transition-all cursor-pointer" title="Системийн үйлдлийн түүх (Audit Log)">
           <i class="fa-solid fa-clock-rotate-left text-xs"></i>
         </button>
+        <!-- БҮХ ӨГӨГДЛИЙГ УСТГАХ ТОВЧ (Зөвхөн админд) -->
+        <button id="btnClearAllData" onclick="handleClearAllData()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-rose-400 border border-rose-500/30 rounded-xl transition-all cursor-pointer" title="Бүх өгөгдлийг устгах">
+          <i class="fa-solid fa-trash-arrow-up text-xs"></i>
+        </button>
 
         <!-- ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР (Текстгүй, авсаархан) -->
         <div class="flex items-center gap-1.5 bg-slate-800/90 px-2 py-1 rounded-xl border border-slate-700" title="Идэвхгүй үед гарах хугацаа">
@@ -2050,6 +2054,9 @@ async function loadFromStorage() {
       document.getElementById('btnUserMgmt').classList.toggle('hidden', !isAdmin);
       const btnActivity = document.getElementById('btnActivityLog');
       if (btnActivity) btnActivity.classList.toggle('hidden', !isAdmin);
+     // ШИНЭ: Бүх өгөгдлийг устгах товчийг зөвхөн админд харуулах
+    const btnClearAll = document.getElementById('btnClearAllData');
+    if (btnClearAll) btnClearAll.classList.toggle('hidden', !isAdmin);
       document.getElementById('btnManageDevCategories').classList.toggle('hidden', !isAdmin);
       document.getElementById('excelActions').classList.toggle('hidden', !(isAdmin || isTech));
       document.getElementById('btnNewAsset').classList.toggle('hidden', !(isAdmin || isTech));
@@ -4221,6 +4228,37 @@ window.openAllAssetsModal = function() {
 
     window.closeActivityLogModal = function() {
       document.getElementById('activityLogModal').classList.add('hidden');
+    };
+    window.closeActivityLogModal = function() {
+      document.getElementById('activityLogModal').classList.add('hidden');
+    };
+
+    // ШИНЭ: БҮХ ӨГӨГДЛИЙГ ЦЭВЭРЛЭХ ФУНКЦ
+    window.handleClearAllData = function() {
+      if (!currentUser || currentUser.role !== 'admin') {
+        alert("Энэ үйлдлийг зөвхөн Админ хийх эрхтэй!");
+        return;
+      }
+
+      const confirmText = "АНХААР!\n\nЭнэ үйлдэл нь системд бүртгэлтэй БҮХ тоног төхөөрөмж, үзлэг засварын түүх болон үйлдлийн логуудыг бүрэн устгах болно. (Хэрэглэгчийн бүртгэлүүд хадгалагдаж үлдэнэ).\n\nҮргэлжлүүлэхдээ итгэлтэй байна уу?";
+      
+      if (confirm(confirmText)) {
+        assets = [];
+        systemAuditLogs = [];
+
+        logUserActivity('Бүх өгөгдөл устгасан', 'Админ хэрэглэгч систем дэх бүх төхөөрөмж ба түүхийг цэвэрлэв (Хэрэглэгчид үлдсэн).');
+
+        saveDB();
+        
+        initSectionFilterSelector();
+        initAssetSelector();
+        renderCurrentAsset();
+        renderDashboardMetrics();
+        renderNotifications();
+        generateReport();
+
+        alert("Хэрэглэгчийн эрхүүдээс бусад бүх өгөгдөл амжилттай устгагдлаа.");
+      }
     };
     // ================= ЭХЛҮҮЛЭХ =================
    window.addEventListener('DOMContentLoaded', async () => {
