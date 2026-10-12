@@ -436,9 +436,9 @@
     </div>
   </section>
 
-      <!-- II & III ТЕХНИКИЙН ҮЗҮҮЛЭЛТ БА ИЖ БҮРДЭЛ (MODERN DUAL CARDS) -->
+      <!-- II & III ТЕХНИКИЙН ҮЗҮҮЛЭТ БА ИЖ БҮРДЭЛ (MODERN DUAL CARDS) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <!-- II. ТЕХНИКИЙН ҮНДСЭН ҮЗҮҮЛЭЛТҮҮД -->
+        <!-- II. ТЕХНИКИЙН ҮНДСЭН ҮЗҮҮЛЭТҮҮД -->
         <section class="lg:col-span-8 bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden flex flex-col transition-all">
           <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50/70 to-white">
             <div class="flex items-center gap-2.5">
@@ -449,7 +449,13 @@
                 Техникийн үндсэн үзүүлэлт
               </h2>
             </div>
-            <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Параметрүүд</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Параметрүүд</span>
+              <!-- Инженер, Ахлах, Админд харагдах засварлах товч -->
+              <button id="btnEditSpecs" onclick="openEditSpecsModal()" class="hidden px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-xs">
+                <i class="fa-solid fa-pen-to-square"></i> Засах
+              </button>
+            </div>
           </div>
           <div class="overflow-x-auto flex-1">
             <table class="w-full text-left text-xs">
@@ -478,7 +484,13 @@
                 Иж бүрдэл
               </h2>
             </div>
-            <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Дагалдах</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">Дагалдах</span>
+              <!-- Инженер, Ахлах, Админд харагдах засварлах товч -->
+              <button id="btnEditAccessories" onclick="openEditAccessoriesModal()" class="hidden px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer shadow-xs">
+                <i class="fa-solid fa-pen-to-square"></i> Засах
+              </button>
+            </div>
           </div>
           <div class="overflow-x-auto flex-1">
             <table class="w-full text-left text-xs">
@@ -1531,7 +1543,59 @@
       </form>
     </div>
   </div>
+<!-- МОДАЛ: ТЕХНИКИЙН ҮЗҮҮЛЭЛТ БА ИЖ БҮРДЭЛ ЗАСВАРЛАХ -->
+  <div id="editSpecsAccModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[70]">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-blue-600"></i> <span id="specsAccModalTitle">Үзүүлэлт ба иж бүрдэл засах</span>
+          </h3>
+          <p class="text-xs text-slate-500">Төхөөрөмж: <span id="specsAccModalModelBadge" class="font-bold text-blue-700"></span></p>
+        </div>
+        <button onclick="closeEditSpecsAccModal()" class="text-slate-400 hover:text-slate-600 p-2 text-base cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
+      <form id="editSpecsAccForm" onsubmit="handleEditSpecsAccSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="modalEditAssetJournalNo">
+        <input type="hidden" id="modalEditTargetType"> <!-- 'specs' эсвэл 'accessories' -->
+
+        <div class="flex items-center justify-between">
+          <span id="modalTableSubtitle" class="font-extrabold text-slate-800 text-xs uppercase tracking-wider">Мэдээлэл</span>
+          <button type="button" onclick="addModalDynamicRow()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-xs">
+            <i class="fa-solid fa-plus"></i> Мөр нэмэх
+          </button>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-2xl max-h-60 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase text-[10px] sticky top-0">
+              <tr>
+                <th class="p-2 w-10 text-center">№</th>
+                <th class="p-2 w-1/3">Нэр</th>
+                <th class="p-2 w-1/3">Утга / Үзүүлэлт</th>
+                <th class="p-2 w-16 text-center">Тоо</th>
+                <th class="p-2 w-20">Нэгж</th>
+                <th class="p-2 w-10 text-center"></th>
+              </tr>
+            </thead>
+            <tbody id="modalDynamicRowsBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeEditSpecsAccModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold cursor-pointer">
+            Болих
+          </button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold cursor-pointer shadow-sm">
+            Хадгалах
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
   <!-- ================= JAVASCRIPT ҮНДСЭН КОД ================= -->
   <script>
     const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxe0TiQVCx1L0a3Zk0ymhd7DJe5gGnNuKyDoJa8WOx9owj3T8TmeAfmVKg7dtLkFSY/exec";
@@ -2665,6 +2729,7 @@ function calculateNextInspectionData(asset) {
       });
 
       renderMaintenanceLogs(a);
+      updateSpecsEditPermissions(a);
     }
 
     // ================= ҮЗЛЭГ БҮРТГЭХ ХЭСГИЙН ШИНЭ ЛОГИК =================
@@ -4298,6 +4363,139 @@ window.openAllAssetsModal = function() {
         dropdown.classList.add('hidden');
       }
     });
-  </script>
+
+    // ==========================================
+    // ЭНД ШИНЭ ФУНКЦҮҮДЭЭ ХУУЛЖ ТАВИНА
+    // ==========================================
+
+    function updateSpecsEditPermissions(asset) {
+      if (!currentUser) return;
+      const role = currentUser.role;
+      const isAdmin = role === 'admin';
+      const isLead = role === 'lead';
+      const isAuditor = role === 'auditor';
+      const isTech = role === 'technician';
+
+      if (isAuditor || role === 'viewer') {
+        document.getElementById('btnEditSpecs')?.classList.add('hidden');
+        document.getElementById('btnEditAccessories')?.classList.add('hidden');
+        return;
+      }
+
+      if (isAdmin || isLead) {
+        document.getElementById('btnEditSpecs')?.classList.remove('hidden');
+        document.getElementById('btnEditAccessories')?.classList.remove('hidden');
+      } 
+      else if (isTech) {
+        const isMySystem = (asset.category === currentUser.system);
+        document.getElementById('btnEditSpecs')?.classList.toggle('hidden', !isMySystem);
+        document.getElementById('btnEditAccessories')?.classList.toggle('hidden', !isMySystem);
+      }
+    }
+
+    window.openEditSpecsModal = function() {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a) return;
+
+      document.getElementById('modalEditAssetJournalNo').value = a.journalNo;
+      document.getElementById('modalEditTargetType').value = 'specs';
+      document.getElementById('specsAccModalTitle').innerText = 'Техникийн үндсэн үзүүлэлт засах';
+      document.getElementById('specsAccModalModelBadge').innerText = `${a.model} (№${a.journalNo})`;
+      document.getElementById('modalTableSubtitle').innerText = 'Үзүүлэлтийн жагсаалт';
+
+      const tbody = document.getElementById('modalDynamicRowsBody');
+      tbody.innerHTML = '';
+
+      const specsList = a.specs && a.specs.length > 0 ? a.specs : [{ name: '', val: '', qty: '1', unit: 'ш' }];
+      specsList.forEach((s) => {
+        addModalRow(s.name, s.val, s.qty, s.unit);
+      });
+
+      document.getElementById('editSpecsAccModal').classList.remove('hidden');
+    };
+
+    window.openEditAccessoriesModal = function() {
+      const a = assets.find(x => x.journalNo === currentAssetNo);
+      if (!a) return;
+
+      document.getElementById('modalEditAssetJournalNo').value = a.journalNo;
+      document.getElementById('modalEditTargetType').value = 'accessories';
+      document.getElementById('specsAccModalTitle').innerText = 'Иж бүрдэл засах';
+      document.getElementById('specsAccModalModelBadge').innerText = `${a.model} (№${a.journalNo})`;
+      document.getElementById('modalTableSubtitle').innerText = 'Иж бүрдлийн жагсаалт';
+
+      const tbody = document.getElementById('modalDynamicRowsBody');
+      tbody.innerHTML = '';
+
+      const accList = a.accessories && a.accessories.length > 0 ? a.accessories : [{ name: '', val: '', qty: '1', unit: 'ш' }];
+      accList.forEach((acc) => {
+        addModalRow(acc.name, acc.val || '', acc.qty || '1', acc.unit || 'ш');
+      });
+
+      document.getElementById('editSpecsAccModal').classList.remove('hidden');
+    };
+
+    window.closeEditSpecsAccModal = function() {
+      document.getElementById('editSpecsAccModal').classList.add('hidden');
+    };
+
+    window.addModalRow = function(name = '', val = '', qty = '1', unit = 'ш') {
+      const tbody = document.getElementById('modalDynamicRowsBody');
+      const idx = tbody.children.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="p-2 text-center font-bold text-slate-400 row-num">${idx}</td>
+        <td class="p-1"><input type="text" placeholder="Нэр..." value="${name}" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs modal-row-name" required></td>
+        <td class="p-1"><input type="text" placeholder="Утга / Төрөл..." value="${val}" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs modal-row-val"></td>
+        <td class="p-1"><input type="text" value="${qty}" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs text-center modal-row-qty"></td>
+        <td class="p-1"><input type="text" value="${unit}" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs modal-row-unit"></td>
+        <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); updateModalRowNumbers();" class="text-rose-500 hover:text-rose-700 cursor-pointer p-1"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    window.addModalDynamicRow = function() {
+      window.addModalRow('', '', '1', 'ш');
+    };
+
+    window.updateModalRowNumbers = function() {
+      document.querySelectorAll('#modalDynamicRowsBody tr').forEach((tr, i) => {
+        tr.querySelector('.row-num').innerText = i + 1;
+      });
+    };
+
+    window.handleEditSpecsAccSubmit = function(e) {
+      e.preventDefault();
+      const jNo = document.getElementById('modalEditAssetJournalNo').value;
+      const targetType = document.getElementById('modalEditTargetType').value;
+      const a = assets.find(x => x.journalNo === jNo);
+      if (!a) return;
+
+      const items = [];
+      document.querySelectorAll('#modalDynamicRowsBody tr').forEach(tr => {
+        const name = tr.querySelector('.modal-row-name').value.trim();
+        const val = tr.querySelector('.modal-row-val').value.trim();
+        const qty = tr.querySelector('.modal-row-qty').value.trim() || '1';
+        const unit = tr.querySelector('.modal-row-unit').value.trim() || 'ш';
+        if (name) {
+          items.push({ name, val, qty, unit });
+        }
+      });
+
+      if (targetType === 'specs') {
+        a.specs = items;
+        logUserActivity('Техникийн үзүүлэлт зассан', `№${a.journalNo} (${a.model}) техникийн үзүүлэлтийг шинэчлэв.`);
+      } else {
+        a.accessories = items;
+        logUserActivity('Иж бүрдэл зассан', `№${a.journalNo} (${a.model}) иж бүрдлийг шинэчлэв.`);
+      }
+
+      saveDB();
+      renderCurrentAsset();
+      closeEditSpecsAccModal();
+      alert('Мэдээлэл амжилттай шинэчлэгдлээ!');
+    };
+
+  </script> <!-- Скрипт хаагддаг шошгоны яг дээр байх ёстой -->
 </body>
 </html>
