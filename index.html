@@ -2617,7 +2617,7 @@ function calculateNextInspectionData(asset) {
 
       return { text, diffDays, targetIso };
     }
-    function getStatusBadgeHtml(status, statusDate) {
+   function getStatusBadgeHtml(status, statusDate) {
   status = status || "Хэвийн ажиллагаатай";
   let daysPassed = 0;
   if (statusDate) {
@@ -2632,9 +2632,9 @@ function calculateNextInspectionData(asset) {
 
   switch (status) {
     case "Хэвийн ажиллагаатай":
-      return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 shadow-xs backdrop-blur-sm"><i class="fa-solid fa-circle-check text-[11px] text-emerald-400"></i> Хэвийн ажиллагаатай</span>`;
+      return `<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 shadow-xs"><i class="fa-solid fa-circle-check text-[11px] text-teal-600"></i> Хэвийн ажиллагаатай</span>`;
     case "Гэмтсэн":
-      return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-400/40 shadow-xs backdrop-blur-sm"><i class="fa-solid fa-triangle-exclamation text-[11px] text-rose-400"></i> Гэмтсэн ${dateInfo}</span>`;
+      return `<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-xs"><i class="fa-solid fa-triangle-exclamation text-[11px] text-rose-600"></i> Гэмтсэн ${dateInfo}</span>`;
     case "Засварт байгаа":
       return `<span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl text-xs font-bold bg-amber-50/70 text-amber-800 border border-amber-300 shadow-xs"><i class="fa-solid fa-wrench text-[11px] text-amber-700"></i> Засварт байгаа ${dateInfo}</span>`;
     case "Актлагдсан":
