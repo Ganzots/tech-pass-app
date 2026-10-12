@@ -1659,6 +1659,7 @@
     }
 
     async function loadFromStorage() {
+      // 1. Эхлээд local cache-ээс түргэн ачаална
       try {
         const u = localStorage.getItem('sys_users_v30');
         if (u) users = JSON.parse(u);
@@ -1674,6 +1675,13 @@
         console.warn('Storage read error.');
       }
 
+      // ХАМГААЛАЛТ 1: Хөтчийн санах ойд admin байхгүй бол анхны admin-ийг хүчээр оруулах
+      if (!users.some(u => u.username && u.username.toLowerCase() === 'admin')) {
+        const defaultAdmin = MASTER_USERS.find(u => u.username === 'admin');
+        if (defaultAdmin) users.unshift(defaultAdmin);
+      }
+
+      // 2. Google Sheets-ээс сүүлийн үеийн бодит өгөгдлийг татах
       if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
         try {
           const res = await fetch(GOOGLE_SHEET_API_URL);
@@ -1681,6 +1689,13 @@
           
           if (data.users && data.users.length > 0) {
             users = data.users;
+
+            // ХАМГААЛАЛТ 2: Google Sheets дээр admin байхгүй байсан ч кодон дээрх admin-ийг алдахгүй нэмэх
+            if (!users.some(u => u.username && u.username.toLowerCase() === 'admin')) {
+              const defaultAdmin = MASTER_USERS.find(u => u.username === 'admin');
+              if (defaultAdmin) users.unshift(defaultAdmin);
+            }
+
             localStorage.setItem('sys_users_v30', JSON.stringify(users));
           }
           if (data.assets && data.assets.length > 0) {
@@ -1688,6 +1703,7 @@
             localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
           }
 
+          // Дэлгэцийг шинэчлэх
           initSectionFilterSelector();
           initAssetSelector();
           renderCurrentAsset();
