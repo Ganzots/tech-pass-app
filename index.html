@@ -1367,40 +1367,54 @@
       </div>
     </div>
   </div>
-  <!-- МОДАЛ: АДМИН ХЭРЭГЛЭГЧИД -->
+ <!-- МОДАЛ: АДМИН ХЭРЭГЛЭГЧИД -->
   <div id="userMgmtModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
       <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-        <h3 class="text-sm font-bold text-slate-900"><i class="fa-solid fa-users-gear text-amber-500 mr-2"></i>Хэрэглэгч ба хандалтын эрхийн удирдлага</h3>
-        <button onclick="closeUserMgmtModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-users-gear text-amber-500 text-base"></i>
+          <span>Хэрэглэгч ба хандалтын эрхийн удирдлага</span>
+        </h3>
+        <button onclick="closeUserMgmtModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
 
       <div class="space-y-2">
         <h4 class="text-xs font-bold text-slate-700">Одоо бүртгэлтэй ажилтнууд:</h4>
-        <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden" id="userListContainer"></div>
+        <div class="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden max-h-56 overflow-y-auto" id="userListContainer"></div>
       </div>
 
-      <form onsubmit="handleAddUser(event)" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
-        <span class="block font-bold text-slate-800">+ Шинэ хэрэглэгч нэмэх</span>
+      <!-- Хэрэглэгч нэмэх болон засах маягт -->
+      <form id="userMgmtForm" onsubmit="handleUserFormSubmit(event)" class="bg-slate-50/80 p-4 rounded-2xl border border-slate-200 space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <span id="userFormTitle" class="font-extrabold text-slate-800 text-xs">+ Шинэ хэрэглэгч нэмэх</span>
+          <button type="button" id="btnCancelUserEdit" onclick="cancelUserEdit()" class="hidden text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer">
+            ✕ Засварыг болих
+          </button>
+        </div>
+        
+        <input type="hidden" id="editUserId" value="">
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <input type="text" id="newUserLastName" placeholder="Овог" required class="px-3 py-2 border border-slate-200 rounded-lg">
-          <input type="text" id="newUserFirstName" placeholder="Нэр" required class="px-3 py-2 border border-slate-200 rounded-lg">
-          <input type="text" id="newUserDept" placeholder="Алба (жишээ: МТХА)" required class="px-3 py-2 border border-slate-200 rounded-lg">
-          <input type="text" id="newUserRoleTitle" placeholder="Албан тушаал" required class="px-3 py-2 border border-slate-200 rounded-lg">
-          <input type="text" id="newUserUsername" placeholder="Нэвтрэх нэр" required class="px-3 py-2 border border-slate-200 rounded-lg">
-          <input type="password" id="newUserPassword" placeholder="Нууц үг" required class="px-3 py-2 border border-slate-200 rounded-lg">
-          <select id="newUserRole" class="px-3 py-2 border border-slate-200 rounded-lg font-semibold sm:col-span-2">
-            <option value="technician">Инженер</option>
+          <input type="text" id="newUserLastName" placeholder="Овог" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="newUserFirstName" placeholder="Нэр" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="newUserDept" placeholder="Алба (жишээ: ТДА)" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="newUserRoleTitle" placeholder="Албан тушаал" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="newUserUsername" placeholder="Нэвтрэх нэр" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+          <input type="password" id="newUserPassword" placeholder="Нууц үг" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+          
+          <select id="newUserRole" onchange="onUserRoleChange(this.value)" class="px-3 py-2 bg-white border border-slate-200 rounded-xl font-semibold sm:col-span-2 text-slate-800">
+            <option value="technician" selected>⚙️ Инженер</option>
+            <option value="lead">✍️ Ахлах ажилтан (Батлах)</option>
+            <option value="auditor">🔍 Хяналтын ажилтан</option>
+            <option value="admin">👑 Админ</option>
             <option value="viewer">Харах эрх</option>
-            <option value="lead">Ахлах ажилтан</option>
-            <option value="auditor">Хяналтын ажилтан</option>
-            <option value="admin">Админ</option>
           </select>
         </div>
 
+        <!-- Хариуцах систем: Зөвхөн Инженер болон Харах эрх дээр харагдана -->
         <div id="systemSelectBlock" class="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
-          <label class="block font-bold text-slate-700">Хариуцах систем:</label>
-          <select id="newUserSystem" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-medium">
+          <label class="block font-bold text-slate-700 text-[11px]">Хариуцах систем:</label>
+          <select id="newUserSystem" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-medium">
             <option value="Хяналт мэдээллийн систем">Хяналт мэдээллийн систем (01)</option>
             <option value="Тоолуурын нэгдсэн систем">Тоолуурын нэгдсэн систем (02)</option>
             <option value="Холбооны систем">Холбооны систем (03)</option>
@@ -1408,8 +1422,10 @@
           </select>
         </div>
 
-        <div class="text-right">
-          <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold cursor-pointer">Хэрэглэгч нэмэх</button>
+        <div class="text-right pt-1">
+          <button type="submit" id="btnSubmitUserForm" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer transition shadow-sm">
+            Хэрэглэгч нэмэх
+          </button>
         </div>
       </form>
     </div>
