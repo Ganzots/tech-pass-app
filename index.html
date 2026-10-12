@@ -2267,20 +2267,14 @@ async function loadFromStorage() {
       const da = String(now.getDate()).padStart(2, '0');
       const hr = String(now.getHours()).padStart(2, '0');
       const mi = String(now.getMinutes()).padStart(2, '0');
-      const timeStr = `${yr}-${mo}-${da} ${hr}:${mi}`;
-      document.getElementById('reportTimestamp').innerText = timeStr;
+      document.getElementById('reportTimestamp').innerText = `${yr}-${mo}-${da} ${hr}:${mi}`;
 
-      // ЭРХИЙН ШҮҮЛТ: Энгийн инженерт зөвхөн өөрийн системийн өгөгдөл харагдана
       const isPrivileged = currentUser && (currentUser.role === 'admin' || currentUser.role === 'lead' || currentUser.role === 'auditor');
-      let baseAssets = isPrivileged 
-        ? [...assets] 
-        : assets.filter(a => a.category === currentUser?.system);
-
+      let baseAssets = isPrivileged ? [...assets] : assets.filter(a => a.category === currentUser?.system);
       let filtered = [...baseAssets];
+      
       let title = "ТОНОГ ТӨХӨӨРӨМЖИЙН НЭГДСЭН ТАЙЛАН";
-      let subtitle = isPrivileged 
-        ? "Бүх систем, төхөөрөмжийн ажиллагаа ба үзлэгийн түүх" 
-        : `${currentUser?.system || ''} хэсгийн ажиллагаа ба үзлэгийн түүх`;
+      let subtitle = isPrivileged ? "Бүх систем, төхөөрөмжийн ажиллагаа ба үзлэгийн түүх" : `${currentUser?.system || ''} хэсгийн ажиллагаа ба үзлэгийн түүх`;
 
       if (rType === 'LAST_30') {
         title = "СҮҮЛИЙН 1 САРЫН ҮЗЛЭГ ХИЙГДСЭН ТӨХӨӨРӨМЖИЙН ТАЙЛАН";
@@ -2311,11 +2305,12 @@ async function loadFromStorage() {
       tbody.innerHTML = '';
 
       if (filtered.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="9" class="p-6 text-center text-slate-400 italic">Сонгосон шалгуурт тохирох төхөөрөмж олдсонгүй.</td>`;
-        tbody.appendChild(tr);
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Сонгосон шалгуурт тохирох төхөөрөмж олдсонгүй.</td></tr>`;
         return;
       }
+
+      // Хурдасгасан хэсэг: DocumentFragment ашигласан
+      const fragment = document.createDocumentFragment();
 
       filtered.forEach((a, idx) => {
         const lastLog = (a.logs && a.logs.length > 0) ? a.logs[0] : null;
@@ -2345,8 +2340,10 @@ async function loadFromStorage() {
           <td class="p-2.5 text-slate-600 whitespace-nowrap border-r border-slate-200">${lastLog ? lastLog.date : (a.commissionedDate || '-')}</td>
           <td class="p-2.5">${logDetail}</td>
         `;
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
       });
+
+      tbody.appendChild(fragment);
     };
     window.printReportDirectly = function() {
       generateReport();
@@ -3907,9 +3904,7 @@ window.openAllAssetsModal = function() {
       const isAdmin = role === 'admin';
       const isLead = role === 'lead';
       const isTech = role === 'technician';
-      const isAuditor = role === 'auditor';
 
-      // Эхний шүүлтүүр: Инженер зөвхөн өөрийн хариуцсан системээ харна
       let baseList = assets;
       if (isTech && currentUser.system) {
         baseList = assets.filter(a => a.category === currentUser.system);
@@ -3929,8 +3924,10 @@ window.openAllAssetsModal = function() {
         return;
       }
 
-      // Засах, устгах эрхтэй эсэх (Админ, Ахлах, Инженер эрхтэй. Хяналт эрхгүй)
       const canManage = (isAdmin || isLead || isTech);
+      
+      // Хурдасгасан хэсэг: DocumentFragment ашигласан
+      const fragment = document.createDocumentFragment(); 
 
       filtered.forEach((a, idx) => {
         const tr = document.createElement('tr');
@@ -3949,7 +3946,6 @@ window.openAllAssetsModal = function() {
             </div>
           `;
         } else {
-          // Хяналт (Auditor) үед үйлдлийн товчгүй, зөвхөн харах
           actionHtml = `<span class="text-slate-400 text-[11px] italic">Зөвхөн харах</span>`;
         }
 
@@ -3966,12 +3962,12 @@ window.openAllAssetsModal = function() {
               ${a.status || 'Хэвийн'}
             </span>
           </td>
-          <td class="p-2.5 text-center">
-            ${actionHtml}
-          </td>
+          <td class="p-2.5 text-center">${actionHtml}</td>
         `;
-        tbody.appendChild(tr);
+        fragment.appendChild(tr);
       });
+      
+      tbody.appendChild(fragment);
     }
 
     // Төхөөрөмж засах цонх нээх
