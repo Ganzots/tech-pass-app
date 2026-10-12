@@ -152,14 +152,11 @@
           <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-xs">
             <div class="p-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <span class="font-bold text-slate-900 flex items-center gap-1.5"><i class="fa-solid fa-bell text-blue-600"></i> Мэдэгдлүүд</span>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="markAllNotificationsAsRead()" class="text-[11px] text-blue-600 hover:text-blue-800 font-bold cursor-pointer transition-colors">Бүгдийг уншсан</button>
-                <span class="text-slate-300">|</span>
-                <span id="notifCountText" class="text-[11px] text-slate-500 font-medium">0 шинэ</span>
-              </div>
+              <span id="notifCountText" class="text-[11px] text-slate-500 font-medium">0 шинэ</span>
             </div>
             <div id="notifListContainer" class="max-h-80 overflow-y-auto divide-y divide-slate-100"></div>
           </div>
+        </div>
 
         <!-- ХЭРЭГЛЭГЧИД ТОВЧ (Зөвхөн Icon) -->
         <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl transition-all cursor-pointer" title="Хэрэглэгчийн эрх удирдах">
@@ -2994,26 +2991,12 @@ window.closeUserMgmtModal = function() {
       tbody.appendChild(fragment);
     }
     // 2. Мэдэгдэл харуулах шинэчилсэн функц (Үүргээр ялгаж, дарахад шилжинэ)
-    // Мэдэгдлийг бүгдийг уншсан болгох хувьсагч
-  let allNotificationsRead = false;
-
-  window.markAllNotificationsAsRead = function() {
-    allNotificationsRead = true;
-    renderNotifications();
-  };
     function renderNotifications() {
       const badge = document.getElementById('notifBadge');
       const countText = document.getElementById('notifCountText');
       const list = document.getElementById('notifListContainer');
       if (!badge || !list || !currentUser) return;
 
-      // Хэрэв "Бүгдийг уншсан" товчийг дарсан бол мэдэгдлийг хоосон болгох
-    if (allNotificationsRead) {
-      badge.classList.add('hidden');
-      countText.innerText = '0 шинэ';
-      list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">Шинэ мэдэгдэл байхгүй байна.</div>';
-      return;
-    }
       list.innerHTML = '';
       const notifs = [];
 
