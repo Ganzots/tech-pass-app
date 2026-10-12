@@ -313,121 +313,120 @@
     <div id="tabContentPassport" class="space-y-6">
 
       <!-- I. ТОНОГ ТӨХӨӨРӨМЖИЙН ЗОРИУЛАЛТ (MODERN HERO CARD) -->
-      <section class="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden space-y-0 transition-all">
-        <!-- Толгой Hero хэсэг: Журнал, Марк, Төлөв, QR товч -->
-        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white p-5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div class="space-y-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <span id="dispCategoryBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">-</span>
-              <span id="dispDeviceCatBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">-</span>
-              <span id="dispStatusBadge" class="inline-flex items-center">-</span>
-            </div>
-            <div>
-              <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                <span id="dispModel">-</span>
-              </h2>
-              <div class="flex items-center gap-3 mt-1 text-xs text-slate-300 font-mono">
-                <span>Хөрөнгийн код: <strong class="text-amber-300 font-bold" id="dispAssetCode">-</strong></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Баруун талын Журнал № ба QR товч -->
-          <div class="flex items-center gap-2.5 self-stretch md:self-auto justify-between md:justify-end bg-slate-800/80 p-2 sm:p-2.5 rounded-2xl border border-slate-700">
-            <div class="px-3 py-1 text-left sm:text-right">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Журналын №</span>
-              <span class="font-black text-sky-400 text-lg sm:text-xl font-mono tracking-tight" id="dispJournalNo">-</span>
-            </div>
-            <button type="button" onclick="openQrModal()" class="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-md shadow-blue-600/30 cursor-pointer no-print flex items-center justify-center" title="Төхөөрөмжийн QR шошго хэвлэх">
-              <i class="fa-solid fa-qrcode text-lg"></i>
-            </button>
-          </div>
+<section class="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden space-y-0 transition-all">
+  <!-- Толгой Hero хэсэг: Дэвсгэр өнгийг нэгдмэл slate-900 болгов -->
+  <div class="bg-slate-900 text-white p-5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="space-y-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <span id="dispCategoryBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-blue-300 border border-slate-700">-</span>
+        <span id="dispDeviceCatBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-indigo-300 border border-slate-700">-</span>
+        <span id="dispStatusBadge" class="inline-flex items-center">-</span>
+      </div>
+      <div>
+        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+          <span id="dispModel">-</span>
+        </h2>
+        <div class="flex items-center gap-3 mt-1 text-xs text-slate-300 font-mono">
+          <span>Хөрөнгийн код: <strong class="text-amber-300 font-bold" id="dispAssetCode">-</strong></span>
         </div>
+      </div>
+    </div>
 
+    <!-- Баруун талын Журнал № ба QR товч -->
+    <div class="flex items-center gap-2.5 self-stretch md:self-auto justify-between md:justify-end bg-slate-800 p-2 sm:p-2.5 rounded-2xl border border-slate-700">
+      <div class="px-3 py-1 text-left sm:text-right">
+        <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Журналын №</span>
+        <span class="font-black text-sky-400 text-lg sm:text-xl font-mono tracking-tight" id="dispJournalNo">-</span>
+      </div>
+      <button type="button" onclick="openQrModal()" class="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-md shadow-blue-600/30 cursor-pointer no-print flex items-center justify-center" title="Төхөөрөмжийн QR шошго хэвлэх">
+        <i class="fa-solid fa-qrcode text-lg"></i>
+      </button>
+    </div>
+  </div>
         <!-- Дэлгэрэнгүй үзүүлэлтийн картууд (Grid) -->
-        <div class="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-xs bg-slate-50/50">
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-location-dot"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Байршил</span>
-              <span class="font-bold text-slate-900 truncate block text-xs" id="dispLocation">-</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-user-check"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Эзэмшигч</span>
-              <span class="font-bold text-slate-900 truncate block text-xs" id="dispOwner">-</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-building"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Алба</span>
-              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispDept">-</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-id-badge"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Албан тушаал</span>
-              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispRole">-</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-calendar-check"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Ашиглалтад орсон</span>
-              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispCommissionedDate">-</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-hourglass-half"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Эдлэгдэх хугацаа</span>
-              <span class="font-semibold text-slate-900 truncate block text-xs" id="dispLifespan">-</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
-            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-repeat"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Үзлэгийн давтамж</span>
-              <span class="font-semibold text-blue-700 truncate block text-xs" id="dispInterval">Улиралд 1 удаа</span>
-            </div>
-          </div>
-
-          <!-- Дараагийн үзлэг хийх хугацаа: Тод карт -->
-          <div class="flex items-center gap-3 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 shadow-2xs sm:col-span-2 lg:col-span-1">
-            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm flex-shrink-0">
-              <i class="fa-solid fa-calendar-days"></i>
-            </div>
-            <div class="min-w-0">
-              <span class="text-amber-800 block text-[10px] uppercase font-bold tracking-wider">Дараагийн үзлэг</span>
-              <span class="font-bold text-amber-900 text-xs block truncate" id="dispNextInspection">-</span>
-            </div>
-          </div>
+    <div class="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-xs bg-slate-50/50">
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-location-dot"></i>
         </div>
-      </section>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Байршил</span>
+          <span class="font-bold text-slate-900 truncate block text-xs" id="dispLocation">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-user-check"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Эзэмшигч</span>
+          <span class="font-bold text-slate-900 truncate block text-xs" id="dispOwner">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-building"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Алба</span>
+          <span class="font-semibold text-slate-900 truncate block text-xs" id="dispDept">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-id-badge"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Албан тушаал</span>
+          <span class="font-semibold text-slate-900 truncate block text-xs" id="dispRole">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Ашиглалтад орсон</span>
+          <span class="font-semibold text-slate-900 truncate block text-xs" id="dispCommissionedDate">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Эдлэгдэх хугацаа</span>
+          <span class="font-semibold text-slate-900 truncate block text-xs" id="dispLifespan">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/70 shadow-2xs">
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-repeat"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Үзлэгийн давтамж</span>
+          <span class="font-semibold text-blue-700 truncate block text-xs" id="dispInterval">Улиралд 1 удаа</span>
+        </div>
+      </div>
+
+      <!-- Дараагийн үзлэг хийх хугацаа: Онцлох карт хэвээр үлдэнэ -->
+      <div class="flex items-center gap-3 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 shadow-2xs sm:col-span-2 lg:col-span-1">
+        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm flex-shrink-0">
+          <i class="fa-solid fa-calendar-days"></i>
+        </div>
+        <div class="min-w-0">
+          <span class="text-amber-800 block text-[10px] uppercase font-bold tracking-wider">Дараагийн үзлэг</span>
+          <span class="font-bold text-amber-900 text-xs block truncate" id="dispNextInspection">-</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
       <!-- II & III ТЕХНИКИЙН ҮЗҮҮЛЭЛТ БА ИЖ БҮРДЭЛ (MODERN DUAL CARDS) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
