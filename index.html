@@ -312,33 +312,33 @@
     <!-- ================= ТАБ 1: ЦАХИМ ПАСПОРТЫН ДЭЛГЭЦ ================= -->
     <div id="tabContentPassport" class="space-y-6">
 
-      <!-- I. ТОНОГ ТӨХӨӨРӨМЖИЙН ЗОРИУЛАЛТ (MODERN HERO CARD) -->
+     <!-- I. ТОНОГ ТӨХӨӨРӨМЖИЙН ЗОРИУЛАЛТ (MODERN HERO CARD) -->
 <section class="bg-white rounded-3xl shadow-sm border border-slate-200/90 overflow-hidden space-y-0 transition-all">
-  <!-- Толгой Hero хэсэг: Дэвсгэр өнгийг нэгдмэл slate-900 болгов -->
-  <div class="bg-slate-900 text-white p-5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <!-- Толгой Hero хэсэг: Цайвар дэвсгэртэй болгож өөрчлөв -->
+  <div class="bg-white p-5 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100">
     <div class="space-y-2">
       <div class="flex flex-wrap items-center gap-2">
-        <span id="dispCategoryBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-blue-300 border border-slate-700">-</span>
-        <span id="dispDeviceCatBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-indigo-300 border border-slate-700">-</span>
+        <span id="dispCategoryBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">-</span>
+        <span id="dispDeviceCatBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">-</span>
         <span id="dispStatusBadge" class="inline-flex items-center">-</span>
       </div>
       <div>
-        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
           <span id="dispModel">-</span>
         </h2>
-        <div class="flex items-center gap-3 mt-1 text-xs text-slate-300 font-mono">
-          <span>Хөрөнгийн код: <strong class="text-amber-300 font-bold" id="dispAssetCode">-</strong></span>
+        <div class="flex items-center gap-3 mt-1 text-xs text-slate-500 font-mono">
+          <span>Хөрөнгийн код: <strong class="text-slate-800 font-bold" id="dispAssetCode">-</strong></span>
         </div>
       </div>
     </div>
 
     <!-- Баруун талын Журнал № ба QR товч -->
-    <div class="flex items-center gap-2.5 self-stretch md:self-auto justify-between md:justify-end bg-slate-800 p-2 sm:p-2.5 rounded-2xl border border-slate-700">
+    <div class="flex items-center gap-2.5 self-stretch md:self-auto justify-between md:justify-end bg-slate-50 p-2 sm:p-2.5 rounded-2xl border border-slate-200">
       <div class="px-3 py-1 text-left sm:text-right">
         <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Журналын №</span>
-        <span class="font-black text-sky-400 text-lg sm:text-xl font-mono tracking-tight" id="dispJournalNo">-</span>
+        <span class="font-black text-blue-600 text-lg sm:text-xl font-mono tracking-tight" id="dispJournalNo">-</span>
       </div>
-      <button type="button" onclick="openQrModal()" class="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-md shadow-blue-600/30 cursor-pointer no-print flex items-center justify-center" title="Төхөөрөмжийн QR шошго хэвлэх">
+      <button type="button" onclick="openQrModal()" class="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md shadow-blue-600/30 cursor-pointer no-print flex items-center justify-center" title="Төхөөрөмжийн QR шошго хэвлэх">
         <i class="fa-solid fa-qrcode text-lg"></i>
       </button>
     </div>
