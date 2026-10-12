@@ -1096,48 +1096,121 @@
     </div>
   </div>
 
-  <!-- МОДАЛ: ЗААВАРЧИЛГАА -->
-  <div id="userGuideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+ <!-- МОДАЛ: ЗААВАРЧИЛГАА -->
+  <div id="userGuideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50 transition-opacity">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto border border-slate-100">
+      
+      <!-- Модалын толгой -->
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-book-open text-blue-600"></i> Системийн хэрэглэх зааварчилгаа
-          </h3>
-          <p class="text-xs text-slate-500">Үүрэг хариуцлага ба үндсэн үйлдлүүд</p>
-        </div>
-        <button onclick="closeUserGuideModal()" class="text-slate-400 hover:text-slate-600 text-lg p-2 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-4 text-xs leading-relaxed text-slate-700">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <strong class="text-blue-700 block mb-1">👑 Админ (admin):</strong>
-            Бүх системийн төхөөрөмжүүдийг бүрэн удирдах, ангилал нэмэх/хасах, хэрэглэгч бүртгэх эрхтэй.
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg border border-blue-100">
+            <i class="fa-solid fa-book-open"></i>
           </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <strong class="text-emerald-700 block mb-1">✍️ Ахлах ажилтан (lead):</strong>
-            Инженерүүдийн оруулсан үзлэгийг шалгаж "Батлах" эсвэл буцаах эрхтэй.
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <strong class="text-purple-700 block mb-1">🔍 Хяналтын ажилтан (auditor):</strong>
-            Ахлахын баталсан үзлэгүүдэд аудит хийж, дүгнэлт бичих, танилцах эрхтэй.
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <strong class="text-amber-700 block mb-1">⚙️ Инженер (technician):</strong>
-            Хариуцсан системдээ шинэ төхөөрөмж, үзлэг засварын ажлуудаа хөтлөх эрхтэй.
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">Системийн хэрэглэх зааварчилгаа</h3>
+            <p class="text-xs text-slate-400">Хэрэглэгчийн үүрэг хариуцлага ба ажлын урсгалын дараалал</p>
           </div>
         </div>
+        <button type="button" onclick="closeUserGuideModal()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
 
-        <div class="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100 space-y-1">
-          <strong class="text-blue-900 block">Төхөөрөмжийн ангилал:</strong>
-          <p>Толгой хэсгийн "Ангилал" шүүлтүүрээр Сервер, Компьютер, Сүлжээ, Тэжээл, Кабель зэргээр төрөлжүүлэн хайж шүүнэ. Админ хэрэглэгч араа дүрс бүхий товч дээр даран ангиллуудыг нэмж хасна.</p>
+      <!-- 1. ҮЗЛЭГ БАТАЛГААЖУУЛАЛТЫН ҮЕ ШАТ (АЖЛЫН УРСГАЛЫН ЗУРАГЛАЛ) -->
+      <div class="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 p-5 rounded-2xl border border-blue-100/80 space-y-3">
+        <span class="text-xs font-black uppercase tracking-wider text-blue-900 block flex items-center gap-1.5">
+          <i class="fa-solid fa-diagram-project text-blue-600"></i> Үзлэг, засвар үйлчилгээний баталгаажуулалтын шат дамжлага:
+        </span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
+          <!-- Шат 1: Инженер -->
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1 relative">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">1-р шат</span>
+              <i class="fa-solid fa-screwdriver-wrench text-amber-600 text-sm"></i>
+            </div>
+            <strong class="text-xs text-slate-900 block">Инженер үзлэг оруулах</strong>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Хариуцсан системийн төхөөрөмж дээр үзлэг, үйлчилгээ, солигдсон сэлбэг, төлөвийг бүртгэнэ.</p>
+          </div>
+
+          <!-- Шат 2: Ахлах -->
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1 relative">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">2-р шат</span>
+              <i class="fa-solid fa-clipboard-check text-emerald-600 text-sm"></i>
+            </div>
+            <strong class="text-xs text-slate-900 block">Ахлах ажилтан батлах</strong>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Инженерийн оруулсан ажлыг шалгаад "Батлах" товч дарж баталгаажуулна (эсвэл цуцална).</p>
+          </div>
+
+          <!-- Шат 3: Хяналт -->
+          <div class="bg-white p-3.5 rounded-xl border border-blue-200/60 shadow-xs space-y-1 relative">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">3-р шат</span>
+              <i class="fa-solid fa-stamp text-purple-600 text-sm"></i>
+            </div>
+            <strong class="text-xs text-slate-900 block">Хяналтын ажилтан танилцах</strong>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Ахлахын баталсан ажлыг хянаж "Танилцав" эсвэл "Шаардлага хангаагүй" дүгнэлт өгнө.</p>
+          </div>
         </div>
       </div>
 
-      <div class="text-right pt-2 border-t border-slate-100">
-        <button type="button" onclick="closeUserGuideModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold cursor-pointer">Ойлголоо, хаах</button>
+      <!-- 2. ХЭРЭГЛЭГЧИЙН ҮҮРЭГ БА ХАНДАЛТЫН ЭРХҮҮД (4 КАРТ) -->
+      <div class="space-y-2">
+        <span class="text-xs font-bold text-slate-700 block ml-0.5">Хэрэглэгчийн үүрэг, хариуцлага:</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">⚙️</span>
+              <strong class="text-amber-800 font-extrabold text-xs">Инженер (technician):</strong>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">Зөвхөн хариуцсан системийн төхөөрөмжөө бүртгэх, үзлэг хөтлөх, тайлан шүүх, жагсаалт удирдах (засах/устгах) эрхтэй. Бусад хэсгийн ажилд хандахгүй.</p>
+          </div>
+
+          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">✍️</span>
+              <strong class="text-emerald-800 font-extrabold text-xs">Ахлах ажилтан (lead):</strong>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">Бүх системийн төхөөрөмж, тайланг бүрэн харах, засах, устгах эрхтэй. Инженерүүдийн үзлэгийг шалгаж <strong>Батлах</strong> эрхтэй.</p>
+          </div>
+
+          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">🔍</span>
+              <strong class="text-purple-800 font-extrabold text-xs">Хяналтын ажилтан (auditor):</strong>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">Бүх төхөөрөмж болон баталгаажсан үзлэгүүдийг хянах, <strong>аудитын дүгнэлт бичих</strong>, танилцах эрхтэй. Төхөөрөмжийг устгах, засах эрхгүй (Зөвхөн харах).</p>
+          </div>
+
+          <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1 hover:border-blue-300 transition-colors">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">👑</span>
+              <strong class="text-blue-800 font-extrabold text-xs">Админ (admin):</strong>
+            </div>
+            <p class="text-slate-600 leading-relaxed text-[11px]">Бүх системийн мэдээлэл, ангилал, үйлдлийн түүх (Audit Log) болон хэрэглэгчдийг бүртгэх, эрхийг нь засах, устгах бүрэн удирдлагатай.</p>
+          </div>
+        </div>
       </div>
+
+      <!-- 3. НЭМЭЛТ БОЛОМЖУУДЫН БЛОК -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div class="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-1">
+          <strong class="text-blue-900 block font-bold text-[11px]"><i class="fa-solid fa-qrcode text-blue-600 mr-1"></i> QR код & Шошго:</strong>
+          <p class="text-slate-600 text-[11px] leading-relaxed">Төхөөрөмж бүрийн цахим паспортыг гар утасны камераар уншуулж нээх тусгай шошгыг хэвлэх боломжтой.</p>
+        </div>
+        <div class="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1">
+          <strong class="text-emerald-900 block font-bold text-[11px]"><i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-1"></i> Google Sheets синхрончлол:</strong>
+          <p class="text-slate-600 text-[11px] leading-relaxed">Оруулсан бүх төхөөрөмж, үзлэг засварууд Google Sheets бааз руу автоматаар онлайн хадгалагдаж нөөцлөгдөнө.</p>
+        </div>
+      </div>
+
+      <!-- Доод хаах товч -->
+      <div class="text-right pt-3 border-t border-slate-100">
+        <button type="button" onclick="closeUserGuideModal()" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer transition shadow-sm">
+          Ойлголоо, хаах
+        </button>
+      </div>
+
     </div>
   </div>
 
