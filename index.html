@@ -2063,8 +2063,15 @@ async function loadFromStorage() {
 
     function initAssetCheckboxList() {
       const container = document.getElementById('assetCheckboxList');
+      if (!container) return;
       container.innerHTML = '';
-      assets.forEach(a => {
+
+      const isPrivileged = currentUser && (currentUser.role === 'admin' || currentUser.role === 'lead' || currentUser.role === 'auditor');
+      const list = isPrivileged 
+        ? assets 
+        : assets.filter(a => a.category === currentUser?.system);
+
+      list.forEach(a => {
         const label = document.createElement('label');
         label.className = 'flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 hover:border-blue-400 cursor-pointer';
         label.innerHTML = `
@@ -2087,7 +2094,7 @@ async function loadFromStorage() {
       }
     };
 
-    window.generateReport = function() {
+   window.generateReport = function() {
       const rType = document.getElementById('reportTypeSelector').value;
       const secTarget = document.getElementById('reportSectionTarget').value;
 
@@ -2100,29 +2107,38 @@ async function loadFromStorage() {
       const timeStr = `${yr}-${mo}-${da} ${hr}:${mi}`;
       document.getElementById('reportTimestamp').innerText = timeStr;
 
-      let filtered = [...assets];
+      // ЭРХИЙН ШҮҮЛТ: Энгийн инженерт зөвхөн өөрийн системийн өгөгдөл харагдана
+      const isPrivileged = currentUser && (currentUser.role === 'admin' || currentUser.role === 'lead' || currentUser.role === 'auditor');
+      let baseAssets = isPrivileged 
+        ? [...assets] 
+        : assets.filter(a => a.category === currentUser?.system);
+
+      let filtered = [...baseAssets];
       let title = "ТОНОГ ТӨХӨӨРӨМЖИЙН НЭГДСЭН ТАЙЛАН";
-      let subtitle = "Бүх систем, төхөөрөмжийн ажиллагаа ба үзлэгийн түүх";
+      let subtitle = isPrivileged 
+        ? "Бүх систем, төхөөрөмжийн ажиллагаа ба үзлэгийн түүх" 
+        : `${currentUser?.system || ''} хэсгийн ажиллагаа ба үзлэгийн түүх`;
 
       if (rType === 'LAST_30') {
         title = "СҮҮЛИЙН 1 САРЫН ҮЗЛЭГ ХИЙГДСЭН ТӨХӨӨРӨМЖИЙН ТАЙЛАН";
         subtitle = "Сүүлийн 30 хоногт үзлэг хийгдсэн төхөөрөмжүүдийн жагсаалт";
         const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-        filtered = assets.filter(a => (a.logs || []).some(l => new Date(l.date) >= thirtyDaysAgo));
+        filtered = baseAssets.filter(a => (a.logs || []).some(l => new Date(l.date) >= thirtyDaysAgo));
       } else if (rType === 'LAST_7') {
         title = "СҮҮЛИЙН 7 ХОНОГИЙН ҮЗЛЭГ ХИЙГДСЭН ТӨХӨӨРӨМЖИЙН ТАЙЛАН";
         subtitle = "Сүүлийн 7 хоногт үзлэг хийгдсэн төхөөрөмжүүдийн жагсаалт";
         const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-        filtered = assets.filter(a => (a.logs || []).some(l => new Date(l.date) >= sevenDaysAgo));
+        filtered = baseAssets.filter(a => (a.logs || []).some(l => new Date(l.date) >= sevenDaysAgo));
       } else if (rType === 'SELECTED_ASSETS') {
         title = "СОНГОСОН ТОНОГ ТӨХӨӨРӨМЖҮҮДИЙН ТАЙЛАН";
         subtitle = "Сонгогдсон төхөөрөмжүүдийн дэлгэрэнгүй жагсаалт";
         const selectedNos = Array.from(document.querySelectorAll('.asset-report-check:checked')).map(cb => cb.value);
-        filtered = assets.filter(a => selectedNos.includes(a.journalNo));
+        filtered = baseAssets.filter(a => selectedNos.includes(a.journalNo));
       } else if (rType === 'BY_SECTION') {
-        title = `${secTarget.toUpperCase()} ХЭСГИЙН ТАЙЛАН`;
-        subtitle = `${secTarget}-д хамаарах бүх тоног төхөөрөмжийн хөтлөлт`;
-        filtered = assets.filter(a => a.category === secTarget);
+        const targetSystem = isPrivileged ? secTarget : (currentUser?.system || secTarget);
+        title = `${targetSystem.toUpperCase()} ХЭСГИЙН ТАЙЛАН`;
+        subtitle = `${targetSystem}-д хамаарах тоног төхөөрөмжийн хөтлөлт`;
+        filtered = baseAssets.filter(a => a.category === targetSystem);
       }
 
       document.getElementById('reportHeaderTitle').innerText = title;
@@ -2169,7 +2185,6 @@ async function loadFromStorage() {
         tbody.appendChild(tr);
       });
     };
-
     window.printReportDirectly = function() {
       generateReport();
       window.print();
