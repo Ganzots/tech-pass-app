@@ -1867,7 +1867,6 @@ async function loadFromStorage() {
   assets.forEach(a => {
     if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
   });
-}
    // Google Sheets рүү хадгалж буй төлөвийг дэлгэцэнд харуулах функц
     function updateSyncStatus(status, text) {
       const badge = document.getElementById('syncStatusBadge');
