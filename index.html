@@ -1786,7 +1786,7 @@ function logUserActivity(actionType, details) {
       if (systemAuditLogs.length > 300) systemAuditLogs.pop(); // Сүүлийн 300 үйлдлийг хадгална
     }
 async function loadFromStorage() {
-  // 1. Анхдагч суурь хэрэглэгчид (Хэрэв Sheet хоосон байвал автоматаар үүсэх)
+  // 1. Суурь болон локал хэрэглэгчдийг шууд уншиж гацахаас сэргийлэх
   const defaultMasterUsers = [
     { id: 1, lastName: 'Бат', firstName: 'Админ', name: 'Б.Админ', username: 'admin', password: 'admin123', role: 'admin', system: 'Бүх систем', dept: 'МТХА', roleTitle: 'Системийн админ' },
     { id: 2, lastName: 'Дашдорж', firstName: 'Нацагдорж', name: 'Д.Нацагдорж', username: 'natsagdorj', password: 'Natsag123', role: 'lead', system: 'Тоолуурын нэгдсэн систем', dept: 'ТДА', roleTitle: 'ТХХ-н ахлах инженер' },
@@ -1794,11 +1794,14 @@ async function loadFromStorage() {
     { id: 4, lastName: 'Алтангэрэл', firstName: 'Инженер', name: 'А.Инженер', username: 'engineer', password: 'eng123', role: 'technician', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын инженер' }
   ];
 
-  // 2. Local cache-ээс унших
   try {
     const u = localStorage.getItem('sys_users_v30');
-    if (u) users = JSON.parse(u);
-    else users = defaultMasterUsers;
+    if (u) {
+      users = JSON.parse(u);
+    } else {
+      users = defaultMasterUsers;
+      localStorage.setItem('sys_users_v30', JSON.stringify(users));
+    }
 
     const a = localStorage.getItem('multi_assets_db_v30');
     if (a) assets = JSON.parse(a);
@@ -1816,45 +1819,31 @@ async function loadFromStorage() {
     users = defaultMasterUsers;
   }
 
-  // 3. Google Sheets-ээс JSONP ашиглан бодит өгөгдлийг татаж шинэчлэх (Хамгийн сүүлийн үеийн users-ийг авах)
+  // 2. Ард талд Google Sheets-ээс шинэ мэдээллийг чимээгүй татаж шинэчлэх (Хэрэглэгч гацахаас сэргийлсэн)
   if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
-    try {
-      updateSyncStatus('syncing', 'Google Sheets-ээс мэдээлэл татаж байна...');
+    updateSyncStatus('syncing', 'Google Sheets-ээс мэдээлэл татаж байна...');
+    
+    const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+    window[callbackName] = function(jsonData) {
+      delete window[callbackName];
+      if (script && script.parentNode) document.body.removeChild(script);
       
-      const data = await new Promise((resolve, reject) => {
-        const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
-        window[callbackName] = function(jsonData) {
-          delete window[callbackName];
-          document.body.removeChild(script);
-          resolve(jsonData);
-        };
-        
-        const script = document.createElement('script');
-        script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
-        script.onerror = () => {
-          delete window[callbackName];
-          document.body.removeChild(script);
-          reject(new Error('JSONP load error'));
-        };
-        document.body.appendChild(script);
-      });
-      
-      // Хэрэв Sheet дээр users байвал түүнийг 100% үндсэн бааз болгож авна
-      if (data.users && data.users.length > 0) {
-        users = data.users;
-      } else {
-        // Хэрэв Sheet дээр users байхгүй байвал одоогийн users (MASTER)-ийг Sheet рүү анх удаа хадгална
-        saveDB();
+      if (jsonData && jsonData.users && jsonData.users.length > 0) {
+        // Sheet дээрх хэрэглэгчид болон локал дээрх хэрэглэгчдийг нэгтгэж давхардуулахгүй байх
+        jsonData.users.forEach(su => {
+          if (!users.some(existing => existing.username.toLowerCase() === su.username.toLowerCase())) {
+            users.push(su);
+          }
+        });
+        localStorage.setItem('sys_users_v30', JSON.stringify(users));
       }
-      localStorage.setItem('sys_users_v30', JSON.stringify(users));
-
-      if (data.assets && data.assets.length > 0) {
-        assets = data.assets;
+      
+      if (jsonData && jsonData.assets && jsonData.assets.length > 0) {
+        assets = jsonData.assets;
         localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
       }
 
       updateSyncStatus('synced', 'Холбогдсон');
-
       if (currentUser) {
         initSectionFilterSelector();
         initAssetSelector();
@@ -1862,10 +1851,16 @@ async function loadFromStorage() {
         renderDashboardMetrics();
         renderNotifications();
       }
-    } catch (err) {
-      console.warn("Google Sheets-ээс өгөгдөл татахад анхааруулга:", err);
+    };
+    
+    const script = document.createElement('script');
+    script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
+    script.onerror = () => {
+      delete window[callbackName];
+      if (script && script.parentNode) document.body.removeChild(script);
       updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
-    }
+    };
+    document.body.appendChild(script);
   }
 }
 
