@@ -1883,7 +1883,7 @@ async function loadFromStorage() {
         console.error('Save failed:', err);
       }
 
-      // 2. Google Sheets рүү илгээх (URL параметр ашиглах байдлаар)
+      // 2. Google Sheets рүү илгээх
   if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
     updateSyncStatus('syncing', 'Хадгалахад бэлтгэж байна...');
     
@@ -1896,15 +1896,16 @@ async function loadFromStorage() {
         assets: assets
       });
 
-      // GET хүсэлт болгон URL параметр рүү encode хийж явуулах
-      const targetUrl = `${GOOGLE_SHEET_API_URL}?payload=${encodeURIComponent(payload)}`;
-
-      fetch(targetUrl, {
-        method: "GET",
-        mode: "no-cors"
+      fetch(GOOGLE_SHEET_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: payload
       })
-      .then(() => {
-        console.log("Google Sheets дээр амжилттай хадгалагдлаа.");
+      .then(res => res.json())
+      .then(data => {
+        console.log("Google Sheets дээр амжилттай хадгалагдлаа:", data);
         updateSyncStatus('synced', 'Бүрэн хадгалагдсан');
         setTimeout(() => {
           updateSyncStatus('synced', 'Холбогдсон');
