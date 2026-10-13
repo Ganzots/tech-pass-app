@@ -1792,8 +1792,11 @@ async function loadFromStorage() {
     if (u) users = JSON.parse(u);
     const a = localStorage.getItem('multi_assets_db_v30');
     if (a) assets = JSON.parse(a);
-    const c = localStorage.getItem('current_logged_user_v30');
-    if (c) currentUser = JSON.parse(c);
+    
+    // Анхаарах: Автоматаар өмнөх хэрэглэгчээр нэвтрэхгүйн тулд доорх кодыг хасав:
+    // const c = localStorage.getItem('current_logged_user_v30');
+    // if (c) currentUser = JSON.parse(c);
+
     const cats = localStorage.getItem('sys_device_categories_v30');
     if (cats) deviceCategories = JSON.parse(cats);
     const logs = localStorage.getItem('sys_audit_logs_v30');
