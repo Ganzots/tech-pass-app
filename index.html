@@ -2079,7 +2079,7 @@ async function loadFromStorage() {
       }
     };
 
-    async function handleLoginSubmit(e) {
+    function handleLoginSubmit(e) {
     e.preventDefault();
     const u = document.getElementById('loginUsername').value.trim().toLowerCase();
     const p = document.getElementById('loginPassword').value.trim();
@@ -2087,80 +2087,64 @@ async function loadFromStorage() {
 
     let found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
 
-    // Хэрэглэгч локал санах ойд олдохгүй бол Google Sheets-ээс шууд татаж шалгах
-    if (!found && GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
-      try {
-        const response = await fetch(`${GOOGLE_SHEET_API_URL}`);
-        const jsonData = await response.json();
-        if (jsonData && jsonData.users) {
-          users = jsonData.users;
-          localStorage.setItem('sys_users_v30', JSON.stringify(users));
-          found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
-        }
-      } catch (err) {
-        console.warn("Online login fetch error:", err);
-      }
-    }
-
     if (found) {
-      currentUser = found;
-      document.getElementById('loginError').classList.add('hidden');
-
-      if (rememberMe) {
-        localStorage.setItem('saved_login_username', document.getElementById('loginUsername').value.trim());
-      } else {
-        localStorage.removeItem('saved_login_username');
-      }
-
-      const pwdInput = document.getElementById('loginPassword');
-      if (pwdInput) {
-        pwdInput.value = '';
-        pwdInput.type = 'password';
-      }
-      const eye = document.getElementById('eyeIcon');
-      if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
-
-      saveDB();
-      checkAuth();
+      proceedLogin(found, rememberMe);
     } else {
-      document.getElementById('loginError').classList.remove('hidden');
+      // Хэрэв шууд олдохгүй бол Google Sheets-ээс JSONP ашиглан шинэчилж татаж шалгах
+      if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+        const callbackName = 'login_cb_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(jsonData) {
+          delete window[callbackName];
+          if (script && script.parentNode) document.body.removeChild(script);
+
+          if (jsonData && jsonData.users) {
+            users = jsonData.users;
+            localStorage.setItem('sys_users_v30', JSON.stringify(users));
+            
+            found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+            if (found) {
+              proceedLogin(found, rememberMe);
+              return;
+            }
+          }
+          document.getElementById('loginError').classList.remove('hidden');
+        };
+
+        const script = document.createElement('script');
+        script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
+        script.onerror = () => {
+          delete window[callbackName];
+          if (script && script.parentNode) document.body.removeChild(script);
+          document.getElementById('loginError').classList.remove('hidden');
+        };
+        document.body.appendChild(script);
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
     }
   }
 
-    // Системээс гарах үед өмнөх мэдээллийг бүрэн цэвэрлэх (Аюулгүй байдлын сайжруулалт)
-    function handleLogout() {
-      stopSessionTimer();
-      currentUser = null;
+  function proceedLogin(foundUser, rememberMe) {
+    currentUser = foundUser;
+    document.getElementById('loginError').classList.add('hidden');
 
-      // 1. Нууц үгийн талбарыг заавал бүрэн хоослох
-      const pwdInput = document.getElementById('loginPassword');
-      if (pwdInput) {
-        pwdInput.value = '';
-        pwdInput.type = 'password';
-      }
-      const eye = document.getElementById('eyeIcon');
-      if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
-
-      // 2. Хэрэглэгчийн нэрийг цэвэрлэх (Хэрэв "санах" чагтлаагүй бол)
-      const userInput = document.getElementById('loginUsername');
-      const savedUser = localStorage.getItem('saved_login_username');
-      if (userInput) {
-        if (savedUser) {
-          userInput.value = savedUser;
-          const chk = document.getElementById('chkRememberMe');
-          if (chk) chk.checked = true;
-        } else {
-          userInput.value = '';
-          const chk = document.getElementById('chkRememberMe');
-          if (chk) chk.checked = false;
-        }
-      }
-
-      document.getElementById('loginError')?.classList.add('hidden');
-
-      saveDB();
-      checkAuth();
+    if (rememberMe) {
+      localStorage.setItem('saved_login_username', document.getElementById('loginUsername').value.trim());
+    } else {
+      localStorage.removeItem('saved_login_username');
     }
+
+    const pwdInput = document.getElementById('loginPassword');
+    if (pwdInput) {
+      pwdInput.value = '';
+      pwdInput.type = 'password';
+    }
+    const eye = document.getElementById('eyeIcon');
+    if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
+
+    saveDB();
+    checkAuth();
+  }
 
    function applyUserPermissions() {
       if (!currentUser) return;
