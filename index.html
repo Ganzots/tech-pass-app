@@ -1786,36 +1786,68 @@ function logUserActivity(actionType, details) {
       if (systemAuditLogs.length > 300) systemAuditLogs.pop(); // Сүүлийн 300 үйлдлийг хадгална
     }
 async function loadFromStorage() {
-  // 1. Эхлээд local cache-ээс түргэн ачаална
+  // 1. Анхдагч суурь хэрэглэгчид (Хэрэв Sheet хоосон байвал автоматаар үүсэх)
+  const defaultMasterUsers = [
+    { id: 1, lastName: 'Бат', firstName: 'Админ', name: 'Б.Админ', username: 'admin', password: 'admin123', role: 'admin', system: 'Бүх систем', dept: 'МТХА', roleTitle: 'Системийн админ' },
+    { id: 2, lastName: 'Дашдорж', firstName: 'Нацагдорж', name: 'Д.Нацагдорж', username: 'natsagdorj', password: 'Natsag123', role: 'lead', system: 'Тоолуурын нэгдсэн систем', dept: 'ТДА', roleTitle: 'ТХХ-н ахлах инженер' },
+    { id: 3, lastName: 'Даш', firstName: 'Хяналт', name: 'Д.Хяналт', username: 'auditor', password: 'audit123', role: 'auditor', system: 'Бүх систем', dept: 'Хяналт үнэлгээний алба', roleTitle: 'Хяналтын ажилтан' },
+    { id: 4, lastName: 'Алтангэрэл', firstName: 'Инженер', name: 'А.Инженер', username: 'engineer', password: 'eng123', role: 'technician', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын инженер' }
+  ];
+
+  // 2. Local cache-ээс унших
   try {
     const u = localStorage.getItem('sys_users_v30');
     if (u) users = JSON.parse(u);
+    else users = defaultMasterUsers;
+
     const a = localStorage.getItem('multi_assets_db_v30');
     if (a) assets = JSON.parse(a);
-    
-    // Refresh хийхэд хэвээр үлдэх зорилгоор sessionStorage ашиглав:
+
     const c = sessionStorage.getItem('current_logged_user_v30');
     if (c) currentUser = JSON.parse(c);
 
     const cats = localStorage.getItem('sys_device_categories_v30');
     if (cats) deviceCategories = JSON.parse(cats);
+
     const logs = localStorage.getItem('sys_audit_logs_v30');
     if (logs) systemAuditLogs = JSON.parse(logs);
   } catch (e) {
     console.warn('Storage read error.');
+    users = defaultMasterUsers;
   }
 
-  // 2. Google Sheets-ээс сүүлийн үеийн бодит өгөгдлийг татах
+  // 3. Google Sheets-ээс JSONP ашиглан бодит өгөгдлийг татаж шинэчлэх (Хамгийн сүүлийн үеийн users-ийг авах)
   if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
     try {
       updateSyncStatus('syncing', 'Google Sheets-ээс мэдээлэл татаж байна...');
-      const res = await fetch(GOOGLE_SHEET_API_URL);
-      const data = await res.json();
       
+      const data = await new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(jsonData) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          resolve(jsonData);
+        };
+        
+        const script = document.createElement('script');
+        script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
+        script.onerror = () => {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          reject(new Error('JSONP load error'));
+        };
+        document.body.appendChild(script);
+      });
+      
+      // Хэрэв Sheet дээр users байвал түүнийг 100% үндсэн бааз болгож авна
       if (data.users && data.users.length > 0) {
         users = data.users;
-        localStorage.setItem('sys_users_v30', JSON.stringify(users));
+      } else {
+        // Хэрэв Sheet дээр users байхгүй байвал одоогийн users (MASTER)-ийг Sheet рүү анх удаа хадгална
+        saveDB();
       }
+      localStorage.setItem('sys_users_v30', JSON.stringify(users));
+
       if (data.assets && data.assets.length > 0) {
         assets = data.assets;
         localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
@@ -1823,7 +1855,6 @@ async function loadFromStorage() {
 
       updateSyncStatus('synced', 'Холбогдсон');
 
-      // Хэрэв хэрэглэгч нэвтэрсэн байвал л дэлгэцийг шинэчлэх үйлдлийг хийнэ
       if (currentUser) {
         initSectionFilterSelector();
         initAssetSelector();
@@ -1832,10 +1863,11 @@ async function loadFromStorage() {
         renderNotifications();
       }
     } catch (err) {
-      console.warn("Google Sheets-ээс өгөгдөл татахад алдаа гарлаа:", err);
+      console.warn("Google Sheets-ээс өгөгдөл татахад анхааруулга:", err);
       updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
     }
   }
+}
 
   assets.forEach(a => {
     if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
