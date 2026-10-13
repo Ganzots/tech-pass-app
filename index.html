@@ -166,6 +166,10 @@
 <button onclick="openChangePasswordModal()" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 rounded-xl transition-all cursor-pointer" title="Нууц үг солих">
   <i class="fa-solid fa-key text-xs"></i>
 </button>
+        <!-- КЭШ ЦЭВЭРЛЭХ / СИСТЕМИЙГ ШИНЭЧЛЭХ ТОВЧ (Бүх хэрэглэгчдэд харагдана) -->
+<button onclick="clearSystemCacheAndReload()" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 rounded-xl transition-all cursor-pointer" title="Системийн кэш цэвэрлэх & Шинэчлэх">
+  <i class="fa-solid fa-rotate text-xs"></i>
+</button>
 
         <!-- ХЭРЭГЛЭГЧИД ТОВЧ (Зөвхөн Icon) -->
         <button id="btnUserMgmt" onclick="openUserMgmtModal()" class="hidden w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-xl transition-all cursor-pointer" title="Хэрэглэгчийн эрх удирдах">
@@ -3768,7 +3772,26 @@ window.openChangePasswordModal = function() {
     form.classList.remove('hidden');
   }
 };
+// Системийн кэш цэвэрлэх болон шинэчлэх үйлдэл
+  window.clearSystemCacheAndReload = async function() {
+    if (confirm("Энэ үйлдэл нь браузерын кэшийг цэвэрлэж, Google Sheets дээрх хамгийн сүүлийн үеийн өгөгдлийг шинээр татаж системд холбох болно. Үргэлжлүүлэх үү?")) {
+      // 1. Хэрэглэгчийн нэвтэрсэн төлөв болон түр кэшүүдийг арилгах
+      localStorage.removeItem('sys_users_v30');
+      localStorage.removeItem('multi_assets_db_v30');
+      localStorage.removeItem('sys_device_categories_v30');
+      localStorage.removeItem('sys_audit_logs_v30');
+      sessionStorage.removeItem('current_logged_user_v30');
 
+      // 2. Системээс гарах
+      currentUser = null;
+      stopSessionTimer();
+
+      alert("Кэш амжилттай цэвэрлэгдлээ. Систем шинэ өгөгдлөө татаж дахин ачаална.");
+      
+      // 3. Хуудсыг шинээр ачаалах
+      window.location.reload();
+    }
+  };
 window.closeChangePasswordModal = function() {
   const form = document.getElementById('changePasswordModal');
   if (form) form.classList.add('hidden');
