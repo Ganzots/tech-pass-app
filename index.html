@@ -1793,9 +1793,9 @@ async function loadFromStorage() {
     const a = localStorage.getItem('multi_assets_db_v30');
     if (a) assets = JSON.parse(a);
     
-    // Анхаарах: Автоматаар өмнөх хэрэглэгчээр нэвтрэхгүйн тулд доорх кодыг хасав:
-    // const c = localStorage.getItem('current_logged_user_v30');
-    // if (c) currentUser = JSON.parse(c);
+    // Refresh хийхэд хэвээр үлдэх зорилгоор sessionStorage ашиглав:
+    const c = sessionStorage.getItem('current_logged_user_v30');
+    if (c) currentUser = JSON.parse(c);
 
     const cats = localStorage.getItem('sys_device_categories_v30');
     if (cats) deviceCategories = JSON.parse(cats);
@@ -1867,18 +1867,19 @@ async function loadFromStorage() {
     let syncTimeout = null; // Google API руу хэт олон хүсэлт илгээхээс сэргийлэх хувьсагч
 
     function saveDB() {
-      // 1. Хөтөч дээр шуурхай хадгалах (LocalStorage - үйлдэл хийгдэх бүрт шууд хадгалагдах тул өгөгдөл устахгүй)
-      try {
-        localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
-        localStorage.setItem('sys_users_v30', JSON.stringify(users));
-        localStorage.setItem('sys_device_categories_v30', JSON.stringify(deviceCategories));
-        localStorage.setItem('sys_audit_logs_v30', JSON.stringify(systemAuditLogs));
-        if (currentUser) {
-          localStorage.setItem('current_logged_user_v30', JSON.stringify(currentUser));
-        } else {
-          localStorage.removeItem('current_logged_user_v30');
-        }
-      } catch (err) {
+      // 2. Хөтөч дээр шуурхай хадгалах
+  try {
+    localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
+    localStorage.setItem('sys_users_v30', JSON.stringify(users));
+    localStorage.setItem('sys_device_categories_v30', JSON.stringify(deviceCategories));
+    localStorage.setItem('sys_audit_logs_v30', JSON.stringify(systemAuditLogs));
+    
+    if (currentUser) {
+      sessionStorage.setItem('current_logged_user_v30', JSON.stringify(currentUser));
+    } else {
+      sessionStorage.removeItem('current_logged_user_v30');
+    }
+  } catch (err) {
         console.error('Save failed:', err);
       }
 
