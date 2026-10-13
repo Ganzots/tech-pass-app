@@ -1802,14 +1802,13 @@ async function loadFromStorage() {
     console.warn('Storage read error.');
   }
 
-  // 2. Google Sheets-ээс сүүлийн үеийн бодит өгөгдлийг (Хэрэглэгчид болон Төхөөрөмжүүд) татах
+  // 2. Google Sheets-ээс сүүлийн үеийн бодит өгөгдлийг татах
   if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
     try {
       updateSyncStatus('syncing', 'Google Sheets-ээс мэдээлэл татаж байна...');
       const res = await fetch(GOOGLE_SHEET_API_URL);
       const data = await res.json();
       
-      // Хэрэв Google Sheets дээр хэрэглэгчид байвал систем дэх users массивыг шинэчлэх
       if (data.users && data.users.length > 0) {
         users = data.users;
         localStorage.setItem('sys_users_v30', JSON.stringify(users));
@@ -1821,12 +1820,14 @@ async function loadFromStorage() {
 
       updateSyncStatus('synced', 'Холбогдсон');
 
-      // Дэлгэцийг шинэчлэх
-      initSectionFilterSelector();
-      initAssetSelector();
-      renderCurrentAsset();
-      renderDashboardMetrics();
-      renderNotifications();
+      // Хэрэв хэрэглэгч нэвтэрсэн байвал л дэлгэцийг шинэчлэх үйлдлийг хийнэ
+      if (currentUser) {
+        initSectionFilterSelector();
+        initAssetSelector();
+        renderCurrentAsset();
+        renderDashboardMetrics();
+        renderNotifications();
+      }
     } catch (err) {
       console.warn("Google Sheets-ээс өгөгдөл татахад алдаа гарлаа:", err);
       updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
@@ -1837,7 +1838,6 @@ async function loadFromStorage() {
     if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
   });
 }
-
    // Google Sheets рүү хадгалж буй төлөвийг дэлгэцэнд харуулах функц
     function updateSyncStatus(status, text) {
       const badge = document.getElementById('syncStatusBadge');
