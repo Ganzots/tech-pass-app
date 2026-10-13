@@ -2118,41 +2118,54 @@ function handleLogout() {
     const p = document.getElementById('loginPassword').value.trim();
     const rememberMe = document.getElementById('chkRememberMe')?.checked;
 
-    let found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+    const errorBox = document.getElementById('loginError');
+    if (errorBox) errorBox.classList.add('hidden');
 
-    if (found) {
-      proceedLogin(found, rememberMe);
+    // Хэрэв Google Sheet API холбоотой байвал шууд онлайн дээрх sheet-ээс хамгийн сүүлийн хэрэглэгчдийг татаж шалгах
+    if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+      const callbackName = 'login_sync_' + Math.round(100000 * Math.random());
+      
+      window[callbackName] = function(jsonData) {
+        delete window[callbackName];
+        if (script && script.parentNode) document.body.removeChild(script);
+
+        if (jsonData && jsonData.users && jsonData.users.length > 0) {
+          users = jsonData.users; // Google Sheets дээрх шинэ хэрэглэгчдийг шууд авна
+          localStorage.setItem('sys_users_v30', JSON.stringify(users));
+        }
+
+        const found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+
+        if (found) {
+          proceedLogin(found, rememberMe);
+        } else {
+          if (errorBox) errorBox.classList.remove('hidden');
+        }
+      };
+
+      const script = document.createElement('script');
+      script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
+      script.onerror = () => {
+        delete window[callbackName];
+        if (script && script.parentNode) document.body.removeChild(script);
+        
+        // Сүлжээ байхгүй үед локал дээр байгаа хэрэглэгчдээр шалгах нөөц логик
+        const foundLocal = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+        if (foundLocal) {
+          proceedLogin(foundLocal, rememberMe);
+        } else {
+          if (errorBox) errorBox.classList.remove('hidden');
+        }
+      };
+      document.body.appendChild(script);
+
     } else {
-      // Хэрэв шууд олдохгүй бол Google Sheets-ээс JSONP ашиглан шинэчилж татаж шалгах
-      if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
-        const callbackName = 'login_cb_' + Math.round(100000 * Math.random());
-        window[callbackName] = function(jsonData) {
-          delete window[callbackName];
-          if (script && script.parentNode) document.body.removeChild(script);
-
-          if (jsonData && jsonData.users) {
-            users = jsonData.users;
-            localStorage.setItem('sys_users_v30', JSON.stringify(users));
-            
-            found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
-            if (found) {
-              proceedLogin(found, rememberMe);
-              return;
-            }
-          }
-          document.getElementById('loginError').classList.remove('hidden');
-        };
-
-        const script = document.createElement('script');
-        script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
-        script.onerror = () => {
-          delete window[callbackName];
-          if (script && script.parentNode) document.body.removeChild(script);
-          document.getElementById('loginError').classList.remove('hidden');
-        };
-        document.body.appendChild(script);
+      // API байхгүй үед локалбаазаар шалгах
+      const found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+      if (found) {
+        proceedLogin(found, rememberMe);
       } else {
-        document.getElementById('loginError').classList.remove('hidden');
+        if (errorBox) errorBox.classList.remove('hidden');
       }
     }
   }
@@ -2178,7 +2191,6 @@ function handleLogout() {
     saveDB();
     checkAuth();
   }
-
    function applyUserPermissions() {
       if (!currentUser) return;
       document.getElementById('currentUserName').innerText = currentUser.name;
