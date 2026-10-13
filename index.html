@@ -1786,7 +1786,6 @@ function logUserActivity(actionType, details) {
       if (systemAuditLogs.length > 300) systemAuditLogs.pop(); // Сүүлийн 300 үйлдлийг хадгална
     }
 async function loadFromStorage() {
-  // 1. Суурь болон локал хэрэглэгчдийг шууд уншиж гацахаас сэргийлэх
   const defaultMasterUsers = [
     { id: 1, lastName: 'Бат', firstName: 'Админ', name: 'Б.Админ', username: 'admin', password: 'admin123', role: 'admin', system: 'Бүх систем', dept: 'МТХА', roleTitle: 'Системийн админ' },
     { id: 2, lastName: 'Дашдорж', firstName: 'Нацагдорж', name: 'Д.Нацагдорж', username: 'natsagdorj', password: 'Natsag123', role: 'lead', system: 'Тоолуурын нэгдсэн систем', dept: 'ТДА', roleTitle: 'ТХХ-н ахлах инженер' },
@@ -1815,58 +1814,53 @@ async function loadFromStorage() {
     const logs = localStorage.getItem('sys_audit_logs_v30');
     if (logs) systemAuditLogs = JSON.parse(logs);
   } catch (e) {
-    console.warn('Storage read error.');
     users = defaultMasterUsers;
   }
 
-  // 2. Ард талд Google Sheets-ээс шинэ мэдээллийг чимээгүй татаж шинэчлэх (Хэрэглэгч гацахаас сэргийлсэн)
+  // Google Sheets-ээс мэдээллийг бүрэн татаж дуустал хүлээх (Promise)
   if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
     updateSyncStatus('syncing', 'Google Sheets-ээс мэдээлэл татаж байна...');
     
-    const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
-    window[callbackName] = function(jsonData) {
-      delete window[callbackName];
-      if (script && script.parentNode) document.body.removeChild(script);
-      
-      if (jsonData && jsonData.users && jsonData.users.length > 0) {
-        // Sheet дээрх хэрэглэгчид болон локал дээрх хэрэглэгчдийг нэгтгэж давхардуулахгүй байх
-        jsonData.users.forEach(su => {
-          if (!users.some(existing => existing.username.toLowerCase() === su.username.toLowerCase())) {
-            users.push(su);
-          }
-        });
-        localStorage.setItem('sys_users_v30', JSON.stringify(users));
-      }
-      
-      if (jsonData && jsonData.assets && jsonData.assets.length > 0) {
-        assets = jsonData.assets;
-        localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
-      }
+    await new Promise((resolve) => {
+      const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+      window[callbackName] = function(jsonData) {
+        delete window[callbackName];
+        if (script && script.parentNode) document.body.removeChild(script);
+        
+        if (jsonData && jsonData.users && jsonData.users.length > 0) {
+          jsonData.users.forEach(su => {
+            if (!users.some(existing => existing.username.toLowerCase() === su.username.toLowerCase())) {
+              users.push(su);
+            }
+          });
+          localStorage.setItem('sys_users_v30', JSON.stringify(users));
+        }
+        
+        if (jsonData && jsonData.assets && jsonData.assets.length > 0) {
+          assets = jsonData.assets;
+          localStorage.setItem('multi_assets_db_v30', JSON.stringify(assets));
+        }
 
-      updateSyncStatus('synced', 'Холбогдсон');
-      if (currentUser) {
-        initSectionFilterSelector();
-        initAssetSelector();
-        renderCurrentAsset();
-        renderDashboardMetrics();
-        renderNotifications();
-      }
-    };
-    
-    const script = document.createElement('script');
-    script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
-    script.onerror = () => {
-      delete window[callbackName];
-      if (script && script.parentNode) document.body.removeChild(script);
-      updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
-    };
-    document.body.appendChild(script);
+        updateSyncStatus('synced', 'Холбогдсон');
+        resolve();
+      };
+      
+      const script = document.createElement('script');
+      script.src = `${GOOGLE_SHEET_API_URL}?callback=${callbackName}`;
+      script.onerror = () => {
+        delete window.window[callbackName];
+        if (script && script.parentNode) document.body.removeChild(script);
+        updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
+        resolve();
+      };
+      document.body.appendChild(script);
+    });
   }
-}
 
   assets.forEach(a => {
     if (!a.deviceCategory) a.deviceCategory = "Сервер болон компьютер";
   });
+}
    // Google Sheets рүү хадгалж буй төлөвийг дэлгэцэнд харуулах функц
     function updateSyncStatus(status, text) {
       const badge = document.getElementById('syncStatusBadge');
