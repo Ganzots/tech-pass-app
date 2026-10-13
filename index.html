@@ -2078,7 +2078,40 @@ async function loadFromStorage() {
         eyeIcon.className = 'fa-regular fa-eye text-xs text-slate-400';
       }
     };
+function handleLogout() {
+      stopSessionTimer();
+      currentUser = null;
 
+      const pwdInput = document.getElementById('loginPassword');
+      if (pwdInput) {
+        pwdInput.value = '';
+        pwdInput.type = 'password';
+      }
+      const eye = document.getElementById('eyeIcon');
+      if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
+
+      sessionStorage.removeItem('current_logged_user_v30');
+      localStorage.removeItem('current_logged_user_v30');
+
+      const userInput = document.getElementById('loginUsername');
+      const savedUser = localStorage.getItem('saved_login_username');
+      if (userInput) {
+        if (savedUser) {
+          userInput.value = savedUser;
+          const chk = document.getElementById('chkRememberMe');
+          if (chk) chk.checked = true;
+        } else {
+          userInput.value = '';
+          const chk = document.getElementById('chkRememberMe');
+          if (chk) chk.checked = false;
+        }
+      }
+
+      document.getElementById('loginError')?.classList.add('hidden');
+
+      saveDB();
+      checkAuth();
+    }
     function handleLoginSubmit(e) {
     e.preventDefault();
     const u = document.getElementById('loginUsername').value.trim().toLowerCase();
