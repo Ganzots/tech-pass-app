@@ -3687,6 +3687,14 @@ window.handleUserFormSubmit = function(e) {
   saveDB();
   renderUserList();
   cancelUserEdit();
+// Хэрэглэгчийн мэдээллийг шууд Google Sheets рүү алдаагүй явуулах
+  if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+    fetch(GOOGLE_SHEET_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "saveAll", users: users, assets: assets })
+    }).catch(err => console.warn("User immediate sync error:", err));
+  }
 };
 
 // 8. Хэрэглэгч өөрөө нууц үгээ солих модалыг нээх/хаах
