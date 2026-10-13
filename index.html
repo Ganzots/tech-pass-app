@@ -1894,6 +1894,7 @@ async function loadFromStorage() {
 
           fetch(GOOGLE_SHEET_API_URL, {
             method: "POST",
+            mode: "no-cors",
             headers: {
               "Content-Type": "text/plain;charset=utf-8"
             },
@@ -3691,6 +3692,7 @@ window.handleUserFormSubmit = function(e) {
   if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
     fetch(GOOGLE_SHEET_API_URL, {
       method: "POST",
+      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action: "saveAll", users: users, assets: assets })
     }).catch(err => console.warn("User immediate sync error:", err));
