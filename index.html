@@ -2079,40 +2079,53 @@ async function loadFromStorage() {
       }
     };
 
-    function handleLoginSubmit(e) {
-      e.preventDefault();
-      const u = document.getElementById('loginUsername').value.trim().toLowerCase();
-      const p = document.getElementById('loginPassword').value.trim();
-      const rememberMe = document.getElementById('chkRememberMe')?.checked;
+    async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const u = document.getElementById('loginUsername').value.trim().toLowerCase();
+    const p = document.getElementById('loginPassword').value.trim();
+    const rememberMe = document.getElementById('chkRememberMe')?.checked;
 
-      const found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
+    let found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
 
-      if (found) {
-        currentUser = found;
-        document.getElementById('loginError').classList.add('hidden');
-
-        // Хэрэглэгчийн нэрийг санах сонгосон эсэх
-        if (rememberMe) {
-          localStorage.setItem('saved_login_username', document.getElementById('loginUsername').value.trim());
-        } else {
-          localStorage.removeItem('saved_login_username');
+    // Хэрэглэгч локал санах ойд олдохгүй бол Google Sheets-ээс шууд татаж шалгах
+    if (!found && GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+      try {
+        const response = await fetch(`${GOOGLE_SHEET_API_URL}`);
+        const jsonData = await response.json();
+        if (jsonData && jsonData.users) {
+          users = jsonData.users;
+          localStorage.setItem('sys_users_v30', JSON.stringify(users));
+          found = users.find(user => (user.username.toLowerCase() === u || user.name.toLowerCase() === u) && user.password === p);
         }
-
-        // АЮУЛГҮЙ БАЙДАЛ: Нууц үгийн талбарыг шууд цэвэрлэж санах ойгоос арилгана
-        const pwdInput = document.getElementById('loginPassword');
-        if (pwdInput) {
-          pwdInput.value = '';
-          pwdInput.type = 'password';
-        }
-        const eye = document.getElementById('eyeIcon');
-        if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
-
-        saveDB();
-        checkAuth();
-      } else {
-        document.getElementById('loginError').classList.remove('hidden');
+      } catch (err) {
+        console.warn("Online login fetch error:", err);
       }
     }
+
+    if (found) {
+      currentUser = found;
+      document.getElementById('loginError').classList.add('hidden');
+
+      if (rememberMe) {
+        localStorage.setItem('saved_login_username', document.getElementById('loginUsername').value.trim());
+      } else {
+        localStorage.removeItem('saved_login_username');
+      }
+
+      const pwdInput = document.getElementById('loginPassword');
+      if (pwdInput) {
+        pwdInput.value = '';
+        pwdInput.type = 'password';
+      }
+      const eye = document.getElementById('eyeIcon');
+      if (eye) eye.className = 'fa-regular fa-eye text-xs text-slate-400';
+
+      saveDB();
+      checkAuth();
+    } else {
+      document.getElementById('loginError').classList.remove('hidden');
+    }
+  }
 
     // Системээс гарах үед өмнөх мэдээллийг бүрэн цэвэрлэх (Аюулгүй байдлын сайжруулалт)
     function handleLogout() {
@@ -4560,14 +4573,16 @@ window.openAllAssetsModal = function() {
     };
     // ================= ЭХЛҮҮЛЭХ =================
    window.addEventListener('DOMContentLoaded', async () => {
+  // Хуудас ачаалагдах үед Google Sheets-ээс хэрэглэгчдийг заавал татаж авна
   await loadFromStorage();
-     // Хадгалсан нэр байвал нөхөх
-     const savedUser = localStorage.getItem('saved_login_username');
-     if (savedUser && document.getElementById('loginUsername')) {
-       document.getElementById('loginUsername').value = savedUser;
-       const chk = document.getElementById('chkRememberMe');
-       if (chk) chk.checked = true;
-     }
+
+  const savedUser = localStorage.getItem('saved_login_username');
+  if (savedUser && document.getElementById('loginUsername')) {
+    document.getElementById('loginUsername').value = savedUser;
+    const chk = document.getElementById('chkRememberMe');
+    if (chk) chk.checked = true;
+  }
+  
   checkUrlForJournalNo();
   startLiveClock();
   checkAuth();
