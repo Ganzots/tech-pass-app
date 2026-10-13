@@ -1883,41 +1883,39 @@ async function loadFromStorage() {
         console.error('Save failed:', err);
       }
 
-      // 2. Google Sheets рүү илгээх (Debounce: 2 секунд хүлээж байгаад сүүлийн өөрчлөлтийг ганцхан удаа илгээнэ)
-      if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
-        updateSyncStatus('syncing', 'Хадгалахад бэлтгэж байна...');
-        
-        clearTimeout(syncTimeout);
-        syncTimeout = setTimeout(() => {
-          updateSyncStatus('syncing', 'Google рүү илгээж байна...');
-          const payload = JSON.stringify({
-            action: "saveAll",
-            users: users,
-            assets: assets
-          });
+      // 2. Google Sheets рүү илгээх (URL параметр ашиглах байдлаар)
+  if (GOOGLE_SHEET_API_URL && !GOOGLE_SHEET_API_URL.includes("ЭНД_ӨӨРИЙН")) {
+    updateSyncStatus('syncing', 'Хадгалахад бэлтгэж байна...');
+    
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => {
+      updateSyncStatus('syncing', 'Google рүү илгээж байна...');
+      const payload = JSON.stringify({
+        action: "saveAll",
+        users: users,
+        assets: assets
+      });
 
-          fetch(GOOGLE_SHEET_API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: payload
-          })
-          .then(res => res.json())
-          .then(data => {
-            console.log("Google Sheets дээр амжилттай хадгалагдлаа:", data);
-            updateSyncStatus('synced', 'Бүрэн хадгалагдсан');
-            setTimeout(() => {
-              updateSyncStatus('synced', 'Холбогдсон');
-            }, 4000);
-          })
-          .catch(err => {
-            console.warn("Google Sheets рүү хадгалах явцад анхааруулга гарлаа:", err);
-            updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
-          });
-        }, 2000); // 2000 миллисекунд (2 сек) хүлээнэ
-      }
+      // GET хүсэлт болгон URL параметр рүү encode хийж явуулах
+      const targetUrl = `${GOOGLE_SHEET_API_URL}?payload=${encodeURIComponent(payload)}`;
+
+      fetch(targetUrl, {
+        method: "GET",
+        mode: "no-cors"
+      })
+      .then(() => {
+        console.log("Google Sheets дээр амжилттай хадгалагдлаа.");
+        updateSyncStatus('synced', 'Бүрэн хадгалагдсан');
+        setTimeout(() => {
+          updateSyncStatus('synced', 'Холбогдсон');
+        }, 4000);
+      })
+      .catch(err => {
+        console.warn("Анхааруулга:", err);
+        updateSyncStatus('error', 'Офлайн (Сүлжээгүй)');
+      });
+    }, 2000);
+  }
     }
 // ================= 10 МИНУТЫН ИДЭВХГҮЙ БАЙДЛЫН ТООЛУУР =================
     const SESSION_DURATION_SECONDS = 10 * 60; // 10 минут = 600 секунд
