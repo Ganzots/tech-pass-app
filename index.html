@@ -1639,15 +1639,23 @@
       "Кабель",
       "Бусад"
     ];
+const DEFAULT_USERS = [
+  { id: 1, lastName: 'Бат', firstName: 'Админ', name: 'Б.Админ', username: 'admin', password: 'admin123', role: 'admin', system: 'Бүх систем', dept: 'МТХА', roleTitle: 'Системийн админ' },
+  { id: 2, lastName: 'Цэнгэл', firstName: 'Ганзориг', name: 'Ц.Ганзориг', username: 'ganzorig', password: 'ganzo123', role: 'lead', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын системийн инженер' },
+  { id: 3, lastName: 'Даш', firstName: 'Хяналт', name: 'Д.Хяналт', username: 'auditor', password: 'audit123', role: 'auditor', system: 'Бүх систем', dept: 'Хяналт үнэлгээний алба', roleTitle: 'Хяналтын ажилтан' },
+  { id: 4, lastName: 'Алтангэрэл', firstName: 'Инженер', name: 'А.Инженер', username: 'engineer', password: 'eng123', role: 'technician', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын инженер' }
+];
 
-    const MASTER_USERS = [
-      { id: 1, lastName: 'Бат', firstName: 'Админ', name: 'Б.Админ', username: 'admin', password: 'admin123', role: 'admin', system: 'Бүх систем', dept: 'МТХА', roleTitle: 'Системийн админ' },
-      { id: 2, lastName: 'Цэнгэл', firstName: 'Ганзориг', name: 'Ц.Ганзориг', username: 'ganzorig', password: 'ganzo123', role: 'lead', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын системийн инженер' },
-      { id: 3, lastName: 'Даш', firstName: 'Хяналт', name: 'Д.Хяналт', username: 'auditor', password: 'audit123', role: 'auditor', system: 'Бүх систем', dept: 'Хяналт үнэлгээний алба', roleTitle: 'Хяналтын ажилтан' },
-      { id: 4, lastName: 'Алтангэрэл', firstName: 'Инженер', name: 'А.Инженер', username: 'engineer', password: 'eng123', role: 'technician', system: 'Тоолуурын нэгдсэн систем', dept: 'МТХА', roleTitle: 'Тоолуурын инженер' }
-    ];
-
-    let users = MASTER_USERS;
+let users = (() => {
+  try {
+    const saved = localStorage.getItem('sys_users_v30');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  return DEFAULT_USERS;
+})();
     let currentUser = null;
     let deviceCategories = DEFAULT_DEVICE_CATEGORIES;
     let dismissedNotifications = {};
@@ -1828,11 +1836,8 @@ async function loadFromStorage() {
         if (script && script.parentNode) document.body.removeChild(script);
         
         if (jsonData && jsonData.users && jsonData.users.length > 0) {
-          jsonData.users.forEach(su => {
-            if (!users.some(existing => existing.username.toLowerCase() === su.username.toLowerCase())) {
-              users.push(su);
-            }
-          });
+          // Google Sheets дээрх бүх хэрэглэгчдийг шууд үндсэн users массив болгож авна
+          users = jsonData.users;
           localStorage.setItem('sys_users_v30', JSON.stringify(users));
         }
         
